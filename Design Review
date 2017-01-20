@@ -1,0 +1,26 @@
+
+Under initialisering: Alle heisene har en "grunnkode": single-heis-koden
+Hvis en heis mister nettverket skal den kjøre single-heis-koden
+Hvis bare en heis fungerer/har kontakt skal single-heis-koden kjøres
+
+Må unngå tusen bestillinger:
+- Lage array
+- Bruke lock til å skru av muligheten for nye bestillinger. Har bestilt en heis til 3.etasje(ekstern knapp), 
+3. etasje ekstern knapp gir ikke nye bestillinger før den forrige er tatt hånd om. (alle som bestiller i det
+tidsrommet må altså ta samme heis). En bestilling til 3.etasje intern knapp skrur av 3.etasje ekstern knapp, men
+ikke omvendt. OBS: låse opp/ned ?  Kan ikke ta samme heis, ha tilleggsarray som holder styr på hvem som bestilte først
+og som bestiller ny heis hvis lengden av arrayet er 2 ( altså at både opp og ned bestilling fra tredje etasje er gjort.)
+
+Lys:
+-Etasjelys - lys på i den etasjen heisen befinner seg i
+-Åpen dør-lys
+- Interne knappelys - hvor heisen skal ( det første/"viktigste" to-do)
+- Eksterne knappelys - På hvis noen trenger en tilfeldig heis til denne etasjen
+- Stopp-knapp lys 
+
+Hva må sendes på nettverket:
+- Eksterne ordrer/bestillinger
+- Interne knapperlys/ordrer, hvor er heis x på vei?
+- Etasjelys (= hvor er heis x nå)
+- ikke åpen dør-lys, kan heller sende sånn "jeg er ferdig"-melding
+
