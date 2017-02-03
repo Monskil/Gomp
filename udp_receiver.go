@@ -7,17 +7,16 @@ import (
 )
 
 func main() {
-	hostName := "localhost"
 	portNum := "30000"
 
-	service := hostName + ":" + portNum
+	service := ":" + portNum
 
-	RemoteAddr, err := net.ResolveUDPAddr("udp", service)
+	localAddr, err := net.ResolveUDPAddr("udp", service)
 
 	//LocalAddr := nil
 	// see https://golang.org/pkg/net/#DialUDP
 
-	conn, err := net.DialUDP("udp", nil, RemoteAddr)
+	conn, err := net.ListenUDP("udp", localAddr)
 
 	// note : you can use net.ResolveUDPAddr for LocalAddr as well
 	//        for this tutorial simplicity sake, we will just use nil
@@ -26,26 +25,27 @@ func main() {
 		log.Fatal(err)
 	}
 
-	log.Printf("Established connection to %s \n", service)
-	log.Printf("Remote UDP address : %s \n", conn.RemoteAddr().String())
-	log.Printf("Local UDP client address : %s \n", conn.LocalAddr().String())
-
 	defer conn.Close()
 
-	// write a message to server
-	message := []byte("Hello UDP server!")
+	// write a message to serve
+
+
+    /*message := []byte("Hello UDP server!")
 
 	_, err = conn.Write(message)
 
 	if err != nil {
 		log.Println(err)
+	}*/
+	for {
+		// receive message from server
+		buffer := make([]byte, 1024)
+		n, addr, err := conn.ReadFromUDP(buffer)
+		if(err != nil) {
+			log.Fatal(err)
+		}
+
+		fmt.Println("UDP Server : ", addr)
+		fmt.Println("Received from UDP server : ", string(buffer[:n]))
 	}
-
-	// receive message from server
-	buffer := make([]byte, 1024)
-	n, addr, err := conn.ReadFromUDP(buffer)
-
-	fmt.Println("UDP Server : ", addr)
-	fmt.Println("Received from UDP server : ", string(buffer[:n]))
-
 }

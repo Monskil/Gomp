@@ -1,26 +1,41 @@
 package main
 
-import (
-	"bufio"
-	"fmt"
-	"log"
+import(
 	"net"
-	"strings"
+	"log"
+	"fmt"
+	
 )
 
-func main() {
-
-	// connect to this socket
-	conn, _ := net.Dial("tcp", "127.0.0.1:30000")
-	for {
-		// read in input from stdin
-		reader := bufio.NewReader(os.Stdin)
-		fmt.Print("Text to send: ")
-		text, _ := reader.ReadString('\n')
-		// send to socket
-		fmt.Fprintf(conn, text+"\n")
-		// listen for reply
-		message, _ := bufio.NewReader(conn).ReadString('\n')
-		fmt.Print("Message from server: " + message)
+func check_for_error(err error){
+	if err != nil{
+		log.Fatal(err)
 	}
+}
+
+
+func main(){
+
+	localAddr, err := net.ResolveTCPAddr("tcp", ":20010")
+	remoteAddr, err := net.ResolveTCPAddr("tcp", "129.241.187.43:34933")
+	check_for_error(err)
+
+	socket, err := net.DialTCP("tcp", localAddr, remoteAddr)
+	check_for_error(err)
+
+	//make listener
+	socket_listen, err := net.AcceptTCP();
+
+	defer socket_listen.Close()
+
+	for{
+		socket.Write([1024]byte("Connect to: "))
+
+		buffer := make([]byte, 1024)
+		_, err := socket.Read(buffer)
+		check_for_error(err)
+		fmt.Println(buffer[:])
+
+	}
+
 }

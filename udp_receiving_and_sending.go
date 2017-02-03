@@ -1,58 +1,53 @@
 package main
 
 import (
-	"fmt"
+ 	"fmt"
 	"log"
 	"net"
+	"time"
 )
 
-func handleUDPConnection(conn *net.UDPConn) {
-	buffer := make([]byte, 1024)
 
-	n, addr, err := conn.ReadFromUDP(buffer) // Kommer aldri forbi denne
-	fmt.Println("this is n: ", n)            // blir ikke skrevet ut
-	fmt.Println("UDP  client : ", addr)
-	fmt.Println("Received from UDP client : ", string(buffer[:n]))
-
-	if err != nil {
+func check_for_error(err error){
+	if err != nil{
 		log.Fatal(err)
 	}
-
-	//write message back to client
-
-	message := []byte("Hello UDP client.!.")
-	_, err = conn.WriteToUDP(message, addr)
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
 }
 
-func main() {
-	hostName := "localhost"
-	portNum := "30000"
-	service := hostName + ":" + portNum
 
-	udpAddr, err := net.ResolveUDPAddr("udp4", service)
+func main(){
+	//set up send-socket
+	local_addr, _ := net.ResolveUDPAddr("udp", "")
+	remote_addr, _ := net.ResolveUDPAddr("udp", "129.241.187.43:20010")
+	socket_send, err := net.DialUDP("udp", local_addr, remote_addr)
 
-	if err != nil {
-		log.Fatal(err)
+	check_for_error(err)
+
+	//set up listen socket
+	port, _ := net.ResolveUDPAddr("udp", ":20010")
+	socket_listen, err := net.ListenUDP("udp", port)
+
+	check_for_error(err)
+
+	//closing sockets
+	defer socket_listen.Close()
+	defer socket_send.Close()
+
+	for{
+		//sending message
+		message := "halloa"
+		socket_send.Write([]byte(message))
+
+		//listening to message
+		buffer := make([]byte, 1024)
+		n, addr, err := socket_listen.ReadFromUDP(buffer[:])
+		//fmt.Println("length : ", length)
+		fmt.Println("addr : ", addr)
+		fmt.Println(string(buffer[:n]))
+		time.Sleep(1*time.Second)
+
 	}
 
-	ln, err := net.ListenUDP("udp", udpAddr)
 
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	fmt.Println("UDP server up and listening on port 30000")
-	defer ln.Close()
-
-	for {
-		//wait for UDP client to connect
-		handleUDPConnection(ln)
-
-	}
 
 }
