@@ -5,6 +5,8 @@ import (
 )
 
 const MOTOR_SPEED int = 2800
+const NUM_FLOORS = 4
+const NUM_BUTTONS = 3
 
 var lamp_channel_matrix = [NUM_FLOORS][NUM_BUTTONS]int{
 	{LIGHT_UP1, LIGHT_DOWN1, LIGHT_COMMAND1},
@@ -21,15 +23,27 @@ var button_channel_matrix = [NUM_FLOORS][NUM_BUTTONS]int{
 }
 
 type button_t int
-
 const (
 	BUTTON_UP      = 0
 	BUTTON_DOWN    = 1
 	BUTTON_COMMAND = 2
 )
 
-type motor_direction_t int
+type floor_t int
+const (
+	FLOOR_1      	= 0
+	FLOOR_2    	= 1
+	FLOOR_3		= 2
+	FLOOR_4		= 3
+)
 
+type on_off_t int
+const (
+	OFF      	= 0
+	ON	    	= 1
+)
+
+type motor_direction_t int
 const (
 	DIR_DOWN = -1
 	DIR_STOP = 0
@@ -49,10 +63,17 @@ func Elevator_init() {
 	Set_button_lamp(2, 2, 0)
 	Set_button_lamp(3, 1, 0)
 	Set_button_lamp(3, 2, 0)
-
+	
+	// turn all lights off
+	// --- can you use int, or do you have to use button_t and floor_t?
+	for floor := 0; floor < NUM_FLOORS; floor++ {
+		for button := 0; button < NUM_BUTTONS; button++ {
+			Set_button_lamp(button, floor, OFF)
+		}
+	}
 }
 
-func Set_button_lamp(button button_t, floor int, on_off int) {
+func Set_button_lamp(button button_t, floor floor_t, on_off on_off_t) {
 	if on_off == 0 {
 		io_clear_bit(button_channel_matrix[floor][button])
 	} else {
