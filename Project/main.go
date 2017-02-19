@@ -7,5 +7,5 @@ import (
 )
 
 func main() {
-	Elevator_init()
+	driver.Elevator_init()
 }
