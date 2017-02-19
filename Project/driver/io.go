@@ -8,7 +8,7 @@ package driver  // where "driver" is the folder that contains io.go, io.c, io.h,
 import "C"
 
 func io_init() bool{
-  return C.io_init()
+  return C.io_init() != 0
 }
 
 func io_set_bit(channel int){
