@@ -1,7 +1,7 @@
 package driver
 
 import (
-	"fmt"
+//"fmt"
 )
 
 const MOTOR_SPEED int = 2800
@@ -23,6 +23,7 @@ var button_channel_matrix = [NUM_FLOORS][NUM_BUTTONS]int{
 }
 
 type button_t int
+
 const (
 	BUTTON_UP      = 0
 	BUTTON_DOWN    = 1
@@ -30,53 +31,48 @@ const (
 )
 
 type floor_t int
+
 const (
-	FLOOR_1      	= 0
-	FLOOR_2    	= 1
-	FLOOR_3		= 2
-	FLOOR_4		= 3
+	FLOOR_1 = 0
+	FLOOR_2 = 1
+	FLOOR_3 = 2
+	FLOOR_4 = 3
 )
 
 type on_off_t int
+
 const (
-	OFF      	= 0
-	ON	    	= 1
+	OFF = 0
+	ON  = 1
 )
 
 type motor_direction_t int
+
 const (
 	DIR_DOWN = -1
 	DIR_STOP = 0
 	DIR_UP   = 1
 )
 
-func Elevator_init() {
-	//MAKING LATER
-	io_init()
-	Set_button_lamp(0, 0, 0)
-	Set_button_lamp(0, 2, 0)
-	Set_button_lamp(1, 0, 0)
-	Set_button_lamp(1, 1, 0)
-	Set_button_lamp(1, 2, 0)
-	Set_button_lamp(2, 0, 0)
-	Set_button_lamp(2, 1, 0)
-	Set_button_lamp(2, 2, 0)
-	Set_button_lamp(3, 1, 0)
-	Set_button_lamp(3, 2, 0)
-	
-	// turn all lights off
-	// --- can you use int, or do you have to use button_t and floor_t?
-	for floor := 0; floor < NUM_FLOORS; floor++ {
-		for button := 0; button < NUM_BUTTONS; button++ {
-			Set_button_lamp(button, floor, OFF)
-		}
-	}
-}
-
-func Set_button_lamp(button button_t, floor floor_t, on_off on_off_t) {
+func Set_button_lamp(button int, floor int, on_off on_off_t) {
 	if on_off == 0 {
 		io_clear_bit(button_channel_matrix[floor][button])
 	} else {
 		io_set_bit(button_channel_matrix[floor][button])
 	}
+}
+
+func Elevator_init() {
+	//MAKING LATER
+	io_init()
+	Set_button_lamp(BUTTON_UP, FLOOR_1, ON)
+	Set_button_lamp(BUTTON_COMMAND, FLOOR_2, ON)
+
+	// turn all lights off
+	// --- can you use int, or do you have to use button_t and floor_t?
+	//for floor := 0; floor < NUM_FLOORS; floor++ {
+	//	for button := 0; button < NUM_BUTTONS; button++ {
+	//		Set_button_lamp(button, floor, ON)
+	//}
+	//}
 }
