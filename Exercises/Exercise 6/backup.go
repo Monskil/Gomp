@@ -66,10 +66,10 @@ func backup() {
 	defer socket_listen.Close()
 
 	timer := time.NewTimer(time.Second * 2)
-	backup := true
+	primary_alive := true
 	go func() {
 		<-timer.C
-		backup = false
+		primary_alive = false
 		fmt.Println("Primary is sooo dead.")
 		primary(value)
 	}()
@@ -83,7 +83,7 @@ func backup() {
 		x, _ := strconv.Atoi(string(buffer))
 		value = x
 		timer.Reset(time.Second * 2)
-		if backup == false {
+		if primary_alive == false {
 			break
 		}
 
