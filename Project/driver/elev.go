@@ -30,58 +30,96 @@ var button_channel_matrix = [NUM_FLOORS][NUM_BUTTONS]int{
 type button_t int
 
 const (
-	BUTTON_UP      = 0
-	BUTTON_DOWN    = 1
-	BUTTON_COMMAND = 2
+	BUTTON_UP = iota
+	BUTTON_DOWN
+	BUTTON_COMMAND
 )
 
 type floor_t int
 
 const (
-	FLOOR_1 = 0
-	FLOOR_2 = 1
-	FLOOR_3 = 2
-	FLOOR_4 = 3
+	FLOOR_1 = iota
+	FLOOR_2
+	FLOOR_3
+	FLOOR_4
 )
 
 type on_off_t int
 
 const (
-	OFF = 0
-	ON  = 1
+	OFF = iota
+	ON
 )
 
 type motor_direction_t int
 
 const (
-	DIR_DOWN = -1
-	DIR_STOP = 0
-	DIR_UP   = 1
+	DIR_DOWN = -1 << iota
+	DIR_STOP
+	DIR_UP
 )
 
 func Set_button_lamp(button button_t, floor floor_t, on_off on_off_t) {
 	if on_off == 0 {
-		Io_clear_bit(button_channel_matrix[floor][button])
+		Io_clear_bit(lamp_channel_matrix[floor][button])
 	} else {
-		Io_set_bit(button_channel_matrix[floor][button])
+		Io_set_bit(lamp_channel_matrix[floor][button])
 	}
+}
+
+func Get_floor_sensor_signal() int {
+	if Io_read_bit(SENSOR_FLOOR1) != 0 {
+		return 1
+	}
+	if Io_read_bit(SENSOR_FLOOR2) != 0 {
+		return 2
+	}
+	if Io_read_bit(SENSOR_FLOOR3) != 0 {
+		return 3
+	}
+	if Io_read_bit(SENSOR_FLOOR4) != 0 {
+		return 4
+	} else {
+		return -1
+	}
+}
+
+func Set_motor_direction(dir motor_direction_t) {
+	if dir == DIR_STOP {
+		Io_write_analog(MOTOR, 0)
+	} else if dir == DIR_UP {
+		Io_clear_bit(MOTORDIR)
+		Io_write_analog(MOTOR, MOTOR_SPEED)
+	} else if dir == DIR_DOWN {
+		Io_set_bit(MOTORDIR)
+		Io_write_analog(MOTOR, MOTOR_SPEED)
+	}
+}
+
+func Clear_all_lights() {
+	Set_button_lamp(BUTTON_UP, FLOOR_1, OFF)
+	Set_button_lamp(BUTTON_UP, FLOOR_2, OFF)
+	Set_button_lamp(BUTTON_UP, FLOOR_3, OFF)
+	Set_button_lamp(BUTTON_DOWN, FLOOR_2, OFF)
+	Set_button_lamp(BUTTON_DOWN, FLOOR_3, OFF)
+	Set_button_lamp(BUTTON_DOWN, FLOOR_4, OFF)
+	Set_button_lamp(BUTTON_COMMAND, FLOOR_1, OFF)
+	Set_button_lamp(BUTTON_COMMAND, FLOOR_2, OFF)
+	Set_button_lamp(BUTTON_COMMAND, FLOOR_3, OFF)
+	Set_button_lamp(BUTTON_COMMAND, FLOOR_4, OFF)
+}
+
+func Elevator_to_first_floor() {
+	for Get_floor_sensor_signal() != 1 {
+		Set_motor_direction(DIR_DOWN)
+	}
+	Set_motor_direction(DIR_STOP)
 }
 
 func Elevator_init() {
 	Io_init()
 
-	fmt.Println("Ready to set!")
-	// just trying to set some lamps
-	Set_button_lamp(BUTTON_UP, FLOOR_1, ON)
-	Set_button_lamp(BUTTON_DOWN, FLOOR_2, OFF)
-	Set_button_lamp(BUTTON_COMMAND, FLOOR_2, ON)
-
-	// turn all lights off
-	// --- can you use int, or do you have to use button_t and floor_t?
-	// --- does it work witn int + floor_t?
-	//for floor := 0; floor < NUM_FLOORS; floor++ {
-	//	for button := 0; button < NUM_BUTTONS; button++ {
-	//		Set_button_lamp(button + BUTTON_UP, floor + FLOOR_1, ON)
-	//}
-	//}
+	fmt.Println("Ready to clear!")
+	Clear_all_lights()
+	Elevator_to_first_floor()
 }
