@@ -52,14 +52,12 @@ func primary(start_number int) {
 		socket_send.Write([]byte(str_number))
 		time.Sleep(10 * time.Millisecond)
 	}
-	time.Sleep(1 * time.Second)
 }
 
 func backup() {
 	// set up listen socket
-	fmt.Println("Hellooo")
+	fmt.Println("Hellooo, I'm the backup")
 	value := 0
-	last_value := 0
 	port, _ := net.ResolveUDPAddr("udp", ":20010")
 	socket_listen, err := net.ListenUDP("udp", port)
 	check_for_error(err)
@@ -67,13 +65,15 @@ func backup() {
 	// closing sockets
 	defer socket_listen.Close()
 
-	timer := time.NewTimer(time.Second * 2)
+	timer := time.NewTimer(2 * time.Second)
 	primary_alive := true
 	go func() {
 		<-timer.C
 		primary_alive = false
 		fmt.Println("Primary is sooo dead.")
-		primary(last_value)
+		time.Sleep(500 * time.Millisecond)
+		fmt.Println("I'm now calling the primary with the value", value)
+		primary(value)
 	}()
 
 	for {
@@ -83,9 +83,8 @@ func backup() {
 		check_for_error(err)
 
 		x, _ := strconv.Atoi(string(buffer))
-		last_value = value
 		value = x
-		timer.Reset(time.Second * 2)
+		timer.Reset(2 * time.Second)
 		if primary_alive == false {
 			break
 		}
