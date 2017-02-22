@@ -21,6 +21,7 @@ procedure exercise7 is
             ------------------------------------------
             -- EX. 7 PART 3: Complete the exit protocol here
             -- EX. 8 PART 3: Modify the Finished entry
+            -- does probably not work
 
             if Finished'Count = N then
             	Finished_Gate_Open := True;
@@ -67,12 +68,13 @@ procedure exercise7 is
         -------------------------------------------
         -- EX. 7 PART 1: Create the transaction work here
         
-        if Random(Gen) < Error_Rate then
-            delay Duration(Random(Gen)*5);
+        if Random(Gen) > Error_Rate then
+            delay Duration(Random(Gen));
             return x + 10;
         else 
             delay Duration(0.5);
             raise Count_Failed;
+        end if;
             
         -------------------------------------------
     end Unreliable_Slow_Add;
@@ -108,6 +110,7 @@ procedure exercise7 is
                 		Manager.Signal_Abort;
                 		Manager.Finished;
                 end;
+            en select;
 
             ---------------------------------------
             
