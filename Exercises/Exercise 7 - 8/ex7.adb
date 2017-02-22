@@ -68,6 +68,7 @@ procedure exercise7 is
         else 
         	delay Duration(0.5);
         	raise Count_Failed;
+        end if;
 
         -------------------------------------------
     end Unreliable_Slow_Add;
