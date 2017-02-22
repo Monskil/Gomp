@@ -1,10 +1,5 @@
 package driver
 
-/*
-#include "io.h"
-#include "channels.h"
-*/
-
 import (
 	"fmt"
 )
@@ -94,9 +89,9 @@ func Set_door_open_lamp(on_off on_off_t) {
 
 func Set_stop_lamp(on_off on_off_t) {
 	if on_off == ON {
-		Io_set_bit(STOP)
+		Io_set_bit(LIGHT_STOP)
 	} else {
-		Io_clear_bit(STOP)
+		Io_clear_bit(LIGHT_STOP)
 	}
 }
 
