@@ -67,7 +67,7 @@ func Set_button_lamp(button button_t, floor floor_t, on_off on_off_t) {
 	}
 }
 
-func Set_floor_lamp(floor floor_t) {
+func Set_floor_indicator_lamp(floor floor_t) {
 	switch {
 	case floor == FLOOR_1:
 		Io_clear_bit(LIGHT_FLOOR_IND1)
@@ -100,7 +100,7 @@ func Set_stop_lamp(on_off on_off_t) {
 	}
 }
 
-func Get_floor_from_sensor() int {
+func Get_floor_sensor_signal() int {
 	if Io_read_bit(SENSOR_FLOOR1) != 0 {
 		return 1
 	}
@@ -130,7 +130,7 @@ func Set_motor_direction(dir motor_direction_t) {
 }
 
 // not sure when we need this one
-func Get_buttons_signal(button button_t, floor floor_t) int {
+func Get_button_signal(button button_t, floor floor_t) int {
 	return Io_read_bit(button_channel_matrix[button][floor])
 }
 
@@ -155,11 +155,11 @@ func Set_all_lamps(on_off on_off_t) {
 }
 
 func Elevator_to_first_floor() {
-	for Get_floor_from_sensor() != 1 {
+	for Get_floor_sensor_signal() != 1 {
 		Set_motor_direction(DIR_DOWN)
 	}
 	Set_motor_direction(DIR_STOP)
-	Set_floor_lamp(FLOOR_1)
+	Set_floor_indicator_lamp(FLOOR_1)
 }
 
 func Elevator_init() {
