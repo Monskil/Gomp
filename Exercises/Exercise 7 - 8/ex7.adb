@@ -20,6 +20,7 @@ procedure exercise7 is
         begin
             ------------------------------------------
             -- PART 3: Complete the exit protocol here
+            -- something is wrong here..
 
             -- don't commit if abort
             if Aborted then
@@ -63,7 +64,7 @@ procedure exercise7 is
         -- PART 1: Create the transaction work here
 
         if Random(Gen) > Error_Rate then
-        	delay Duration(Random(Gen)*5);
+        	delay Duration(Random(Gen));
         	return x + 10;
         else 
         	delay Duration(0.5);
