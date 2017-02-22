@@ -56,5 +56,6 @@ func primary(start_number int) {
 }
 
 func main() {
+	fmt.Println("Hello, I'm the primary.")
 	primary(0)
 }
