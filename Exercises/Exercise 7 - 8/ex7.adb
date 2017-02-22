@@ -62,7 +62,7 @@ procedure exercise7 is
         -------------------------------------------
         -- PART 1: Create the transaction work here
 
-        if Random(Gen) < Error_Rate then
+        if Random(Gen) > Error_Rate then
         	delay Duration(Random(Gen)*5);
         	return x + 10;
         else 
