@@ -60,14 +60,47 @@ const (
 )
 
 func Set_button_lamp(button button_t, floor floor_t, on_off on_off_t) {
-	if on_off == 0 {
-		Io_clear_bit(lamp_channel_matrix[floor][button])
-	} else {
+	if on_off == ON {
 		Io_set_bit(lamp_channel_matrix[floor][button])
+	} else {
+		Io_clear_bit(lamp_channel_matrix[floor][button])
 	}
 }
 
-func Get_floor_sensor_signal() int {
+func Set_floor_lamp(floor floor_t) {
+	switch {
+	case floor == FLOOR_1:
+		Io_clear_bit(LIGHT_FLOOR_IND1)
+		Io_clear_bit(LIGHT_FLOOR_IND2)
+	case floor == FLOOR_2:
+		Io_clear_bit(LIGHT_FLOOR_IND1)
+		Io_set_bit(LIGHT_FLOOR_IND2)
+	case floor == FLOOR_3:
+		Io_set_bit(LIGHT_FLOOR_IND1)
+		Io_clear_bit(LIGHT_FLOOR_IND2)
+	case floor == FLOOR_4:
+		Io_set_bit(LIGHT_FLOOR_IND1)
+		Io_set_bit(LIGHT_FLOOR_IND2)
+	}
+}
+
+func Set_door_open_lamp(on_off on_off_t) {
+	if on_off == ON {
+		Io_set_bit(LIGHT_DOOR_OPEN)
+	} else {
+		Io_clear_bit(LIGHT_DOOR_OPEN)
+	}
+}
+
+func Set_stop_lamp(on_off on_off_t) {
+	if on_off == ON {
+		Io_set_bit(STOP)
+	} else {
+		Io_clear_bit(STOP)
+	}
+}
+
+func Get_floor_from_sensor() int {
 	if Io_read_bit(SENSOR_FLOOR1) != 0 {
 		return 1
 	}
@@ -96,30 +129,43 @@ func Set_motor_direction(dir motor_direction_t) {
 	}
 }
 
-func Clear_all_lights() {
-	Set_button_lamp(BUTTON_UP, FLOOR_1, OFF)
-	Set_button_lamp(BUTTON_UP, FLOOR_2, OFF)
-	Set_button_lamp(BUTTON_UP, FLOOR_3, OFF)
-	Set_button_lamp(BUTTON_DOWN, FLOOR_2, OFF)
-	Set_button_lamp(BUTTON_DOWN, FLOOR_3, OFF)
-	Set_button_lamp(BUTTON_DOWN, FLOOR_4, OFF)
-	Set_button_lamp(BUTTON_COMMAND, FLOOR_1, OFF)
-	Set_button_lamp(BUTTON_COMMAND, FLOOR_2, OFF)
-	Set_button_lamp(BUTTON_COMMAND, FLOOR_3, OFF)
-	Set_button_lamp(BUTTON_COMMAND, FLOOR_4, OFF)
+// not sure when we need this one
+func Get_buttons_signal(button button_t, floor floor_t) int {
+	return Io_read_bit(button_channel_matrix[button][floor])
+}
+
+func Set_all_lamps(on_off on_off_t) {
+	// button lamps
+	Set_button_lamp(BUTTON_UP, FLOOR_1, on_off)
+	Set_button_lamp(BUTTON_UP, FLOOR_2, on_off)
+	Set_button_lamp(BUTTON_UP, FLOOR_3, on_off)
+	Set_button_lamp(BUTTON_DOWN, FLOOR_2, on_off)
+	Set_button_lamp(BUTTON_DOWN, FLOOR_3, on_off)
+	Set_button_lamp(BUTTON_DOWN, FLOOR_4, on_off)
+	Set_button_lamp(BUTTON_COMMAND, FLOOR_1, on_off)
+	Set_button_lamp(BUTTON_COMMAND, FLOOR_2, on_off)
+	Set_button_lamp(BUTTON_COMMAND, FLOOR_3, on_off)
+	Set_button_lamp(BUTTON_COMMAND, FLOOR_4, on_off)
+
+	// door open lamp
+	Set_door_open_lamp(on_off)
+
+	// stop lamp
+	Set_stop_lamp(on_off)
 }
 
 func Elevator_to_first_floor() {
-	for Get_floor_sensor_signal() != 1 {
+	for Get_floor_from_sensor() != 1 {
 		Set_motor_direction(DIR_DOWN)
 	}
 	Set_motor_direction(DIR_STOP)
+	Set_floor_lamp(FLOOR_1)
 }
 
 func Elevator_init() {
 	Io_init()
 
 	fmt.Println("Ready to clear!")
-	Clear_all_lights()
+	Set_all_lamps(OFF)
 	Elevator_to_first_floor()
 }
