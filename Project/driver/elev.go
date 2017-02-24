@@ -2,6 +2,7 @@ package driver
 
 import (
 	"fmt"
+	"time"
 )
 
 const MOTOR_SPEED int = 2800
@@ -149,14 +150,6 @@ func Set_all_lamps(on_off on_off_t) {
 	Set_stop_lamp(on_off)
 }
 
-func Elevator_to_first_floor() {
-	for Get_floor_sensor_signal() != 1 {
-		Set_motor_direction(DIR_DOWN)
-	}
-	Set_motor_direction(DIR_STOP)
-	Set_floor_indicator_lamp(FLOOR_1)
-}
-
 func Elevator_to_floor(floor floor_t) {
 	switch {
 	case floor == FLOOR_1:
@@ -172,7 +165,24 @@ func Elevator_to_floor(floor floor_t) {
 }
 
 func Elevator_to_floor_int(floor int) {
+	// if between two floors
 	my_floor := Get_floor_sensor_signal()
+	timer := time.NewTimer(3 * time.Second)
+	timeout := false
+	go func() {
+		<-timer.C
+		timeout = true
+	}()
+	for Get_floor_sensor_signal() == -1 {
+		if !timeout {
+			Set_motor_direction(DIR_UP)
+		} else if timeout {
+			Set_motor_direction(DIR_DOWN)
+		}
+	}
+
+	// go to desired floor
+	my_floor = Get_floor_sensor_signal()
 	if my_floor < floor {
 		for Get_floor_sensor_signal() != floor {
 			Set_motor_direction(DIR_UP)
@@ -190,9 +200,5 @@ func Elevator_init() {
 
 	fmt.Println("Ready to clear!")
 	Set_all_lamps(OFF)
-	//Elevator_to_first_floor()
-	Elevator_to_floor(FLOOR_3)
 	Elevator_to_floor(FLOOR_1)
-	Elevator_to_floor(FLOOR_4)
-	Elevator_to_floor(FLOOR_2)
 }
