@@ -156,6 +156,7 @@ func Elevator_to_first_floor() {
 	Set_motor_direction(DIR_STOP)
 	Set_floor_indicator_lamp(FLOOR_1)
 }
+
 func Elevator_to_floor(floor floor_t) {
 	switch {
 	case floor == FLOOR_1:
