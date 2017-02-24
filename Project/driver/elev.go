@@ -156,11 +156,42 @@ func Elevator_to_first_floor() {
 	Set_motor_direction(DIR_STOP)
 	Set_floor_indicator_lamp(FLOOR_1)
 }
+func Elevator_to_floor(floor floor_t) {
+	switch {
+	case floor == FLOOR_1:
+		Elevator_to_floor_int(1)
+	case floor == FLOOR_2:
+		Elevator_to_floor_int(2)
+	case floor == FLOOR_3:
+		Elevator_to_floor_int(3)
+	case floor == FLOOR_4:
+		Elevator_to_floor_int(4)
+	}
+	Set_floor_indicator_lamp(floor)
+}
+
+func Elevator_to_floor_int(floor int) {
+	my_floor := Get_floor_sensor_signal()
+	if my_floor < floor {
+		for Get_floor_sensor_signal() != floor {
+			Set_motor_direction(DIR_UP)
+		}
+	} else if my_floor > floor {
+		for Get_floor_sensor_signal() != floor {
+			Set_motor_direction(DIR_DOWN)
+		}
+	}
+	Set_motor_direction(DIR_STOP)
+}
 
 func Elevator_init() {
 	Io_init()
 
 	fmt.Println("Ready to clear!")
 	Set_all_lamps(OFF)
-	Elevator_to_first_floor()
+	//Elevator_to_first_floor()
+	Elevator_to_floor(FLOOR_3)
+	Elevator_to_floor(FLOOR_1)
+	Elevator_to_floor(FLOOR_4)
+	Elevator_to_floor(FLOOR_2)
 }
