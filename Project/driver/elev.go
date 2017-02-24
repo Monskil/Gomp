@@ -131,9 +131,8 @@ func Set_motor_direction(dir motor_direction_t) {
 	}
 }
 
-// not sure when we need this one
 func Get_button_signal(button button_t, floor floor_t) int {
-	return Io_read_bit(button_channel_matrix[button][floor])
+	return Io_read_bit(button_channel_matrix[floor][button])
 }
 
 func Set_all_lamps(on_off on_off_t) {
