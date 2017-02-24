@@ -88,6 +88,12 @@ func Set_door_open_lamp(on_off on_off_t) {
 	}
 }
 
+func Open_door() {
+	Set_door_open_lamp(ON)
+	time.Sleep(3 * time.Second)
+	Set_door_open_lamp(OFF)
+}
+
 func Set_stop_lamp(on_off on_off_t) {
 	if on_off == ON {
 		Io_set_bit(LIGHT_STOP)
