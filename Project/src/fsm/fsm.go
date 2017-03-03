@@ -3,13 +3,6 @@
 // Moving: moving, handling order
 // Door open: at a floor with the door open, finishing order
 //
-// The orders have 5 states:
-// Inactive: no order
-// Added: the order has been added to the list, but not yet assigned
-// Assigned: the order has been assigned
-// Ready: verified that order is known at assigned elevator, waiting in line to be executed
-// Active: the order is being executed
-//
 // We have 3 events:
 // New order: a new order is received
 // Floor reached: desired floor is reached
@@ -19,7 +12,7 @@ package fsm
 
 import (
 	"fmt"
-	def "global"
+	"global"
 )
 
 // elevator states
@@ -45,8 +38,8 @@ const (
 
 // declare variables
 var elev_state int
-var floor def.floor_t
-var dir def.motor_direction_t
+var floor global.floor_t
+var dir global.motor_direction_t
 
 // make channels
 type Channels struct {
@@ -56,8 +49,8 @@ type Channels struct {
 	Door_close chan bool
 	
 	// channels setting values
-	Motor_dir chan def.motor_direction_t
-	Floor_lamp chan def.floor_t
+	Motor_dir chan global.motor_direction_t
+	Floor_lamp chan global.floor_t
 	Door_lamp chan int
 }
 
