@@ -1,3 +1,11 @@
+// The orders have x states:
+// Inactive: no order
+// Added: the order has been added to the list, but not yet assigned
+// Assigned: the order has been assigned
+// Ready: verified that order is known at assigned elevator, waiting in line to be executed
+// Active: the order is being executed
+// Finished: the order is finished
+
 package testq
 
 import(
@@ -55,6 +63,7 @@ const (
   assigned
   ready
   active
+  finished
 )
 
 type order struct{
@@ -138,6 +147,23 @@ func add_new_global_order(new_order order, global_order_list [NUM_GLOBAL_ORDERS]
 }
 
 // -- når man sletter en bestilling så må man flytte alle de andre bestillingene et hakk bort
+// -- må også kunne slette ordre som ikke lenger først i lista
+func delete_internal_order(tbd_order order, internal_order_list [NUM_INTERNAL_ORDERS]order) [NUM_INTERNAL_ORDERS]order{
+  for i := 0; i < NUM_INTERNAL_ORDERS; i++{
+    if internal_order_list[i].order_state == inactive {
+
+    }
+  }
+
+  return internal_order_list
+}
+
+func delete_global_order(tbd_order order, global_order_list [NUM_GLOBAL_ORDERS]order) [NUM_GLOBAL_ORDERS]order{
+
+  return global_order_list
+}
+
+
 
 // initial values
 func Init_queue(){
