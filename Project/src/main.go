@@ -3,24 +3,32 @@ package main
 import (
 	"driver"
 	"fmt"
-	def "global"
+	"global"
+	//"queue"
+	//"network"
 	//"time"
 )
 
-func main() {
-	driver.Elevator_init()
-
+func test_button(){
 	value := 0
-	driver.Set_button_lamp(def.BUTTON_UP, def.FLOOR_2, def.ON)
+	driver.Set_button_lamp(global.BUTTON_UP, global.FLOOR_2, global.ON)
 	for {
-		value = driver.Get_button_signal(def.BUTTON_UP, def.FLOOR_2)
+		value = driver.Get_button_signal(global.BUTTON_UP, global.FLOOR_2)
 		fmt.Println(value)
-		if driver.Get_button_signal(def.BUTTON_UP, def.FLOOR_2) != 0 {
+		if driver.Get_button_signal(global.BUTTON_UP, global.FLOOR_2) != 0 {
 			fmt.Println("Hello, you pressed button up floor 2 hehe.")
 		}
 	}
 
+func main() {
+	driver.Elevator_init()
+
 	// -- koble på nettverk
 
 	// -- start ta imot bestillinger modus
+	
+	// testing
+	test_button()
+  	//queue.Init_queue()
+	//network.Test_network()
 }
