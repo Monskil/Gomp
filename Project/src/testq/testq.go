@@ -146,24 +146,45 @@ func add_new_global_order(new_order order, global_order_list [NUM_GLOBAL_ORDERS]
   return global_order_list
 }
 
-// -- når man sletter en bestilling så må man flytte alle de andre bestillingene et hakk bort
-// -- må også kunne slette ordre som ikke lenger først i lista
-func delete_internal_order(tbd_order order, internal_order_list [NUM_INTERNAL_ORDERS]order) [NUM_INTERNAL_ORDERS]order{
-  for i := 0; i < NUM_INTERNAL_ORDERS; i++{
-    if internal_order_list[i].order_state == inactive {
+func delete_internal_order(internal_order_list [NUM_INTERNAL_ORDERS]order) [NUM_INTERNAL_ORDERS]order{
+  clean_order := make_new_order(BUTTON_UP, FLOOR_1, inactive, NONE)
 
+  for i := 0; i < NUM_INTERNAL_ORDERS; i++{
+    if internal_order_list[i].order_state == finished {
+      fmt.Println("An internal order is marked finished.")
+      for j:= i; j < NUM_INTERNAL_ORDERS; j++{
+        if j < NUM_INTERNAL_ORDERS-1{
+          fmt.Println("Moving order.")
+          internal_order_list[j] = internal_order_list[j+1]
+        } else if j == NUM_INTERNAL_ORDERS -1{
+          fmt.Println("Adding last clean order.")
+          internal_order_list[j] = clean_order
+        }
+      }
     }
   }
-
   return internal_order_list
 }
 
-func delete_global_order(tbd_order order, global_order_list [NUM_GLOBAL_ORDERS]order) [NUM_GLOBAL_ORDERS]order{
+func delete_global_order(global_order_list [NUM_GLOBAL_ORDERS]order) [NUM_GLOBAL_ORDERS]order{
+  clean_order := make_new_order(BUTTON_UP, FLOOR_1, inactive, NONE)
 
+  for i := 0; i < NUM_GLOBAL_ORDERS; i++{
+    if global_order_list[i].order_state == finished {
+      fmt.Println("A global order is marked finished.")
+      for j:= i; j < NUM_ORDERS; j++{
+        if j < NUM_GLOBAL_ORDERS-1{
+          fmt.Println("Moving order.")
+          global_order_list[j] = global_order_list[j+1]
+        } else if j == NUM_GLOBAL_ORDERS -1{
+          fmt.Println("Adding last clean order.")
+          global_order_list[j] = clean_order
+        }
+      }
+    }
+  }
   return global_order_list
 }
-
-
 
 // initial values
 func Init_queue(){
@@ -175,17 +196,13 @@ func Init_queue(){
   var my_order_list [NUM_ORDERS] order
 
   // test example making orders
-  var order1 = make_new_order(BUTTON_UP, FLOOR_2, ready, ELEV_2)
+  var order1 = make_new_order(BUTTON_UP, FLOOR_2, finished, ELEV_2)
   var order2 = make_new_order(BUTTON_COMMAND, FLOOR_1, active, ELEV_3)
   var order3 = make_new_order(BUTTON_UP, FLOOR_1, active, ELEV_1)
   var order4 = make_new_order(BUTTON_COMMAND, FLOOR_2, active, ELEV_2)
 
-  //global_order_list[0] = order1
-  //global_order_list[5] = order1
-  //internal_order_list[3] = order2
-
-  internal_order_list = add_new_internal_order(order2, internal_order_list)
   internal_order_list = add_new_internal_order(order1, internal_order_list)
+  internal_order_list = add_new_internal_order(order2, internal_order_list)
   internal_order_list = add_new_internal_order(order2, internal_order_list)
 
   global_order_list = add_new_global_order(order2, global_order_list)
@@ -197,6 +214,12 @@ func Init_queue(){
   // make my order list from the internal and global lists
   my_order_list = make_my_order_list(internal_order_list, global_order_list)
 
-  fmt.Println("This is my global order list: ", global_order_list)
+  //fmt.Println("This is my global order list: ", global_order_list)
   fmt.Println("This is my order list: ", my_order_list)
+
+  internal_order_list = delete_internal_order(internal_order_list)
+  global_order_list = delete_global_order(global_order_list)
+
+  my_order_list = make_my_order_list(internal_order_list, global_order_list)
+  fmt.Println("This is my new order list: ", my_order_list)
 }
