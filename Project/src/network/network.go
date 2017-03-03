@@ -1,58 +1,55 @@
 package network
 
 import (
-	"./bcast"
-	//"./network/localip"
-	//"./network/peers"
-	//"flag"
+	"bcast"
 	"fmt"
-	//"os"
 	"time"
 )
 
+// -- kan bruke json marshal greier for å pakke meldingen, og unpakke den
+// -- sender det da som bytes, må være en public struct (stor forbokstav)
 
-type Global_order struct{
-	text string
+
+type Master_msg struct {
+	Text string
 }
 
-//type Slave_msg struct{
-//	text string
-//}
+type Slave_msg struct{
+	Text string
+}
 
-func TestNetwork(){
-	//Setter opp for det master skal sende, og slavene motta
-	global_order_sender := make(chan Global_order)
-	global_order_receiver := make(chan Global_order)
+func Test_network() {
 
-	go bcast.Transmitter(30000, global_order_sender)
-	go bcast.Receiver(30000, global_order_receiver)
+	//Make channels for sending and receiving HelloMsg
+	master_sender := make(chan Master_msg)
+	master_receiver := make(chan Master_msg)
+	slave_sender := make(chan Slave_msg)
+	slave_receiver := make(chan Slave_msg)
 
-	//Setter opp det slavene skal sende, og masteren motta
-	/*slave_msg_sender := make(chan Slave_msg)
-	slave_msg_receiver := make(chan Slave_msg)
+	//Sier hvilken socket som skal gjøre hva
+	go bcast.Transmitter(30000, master_sender)
+	go bcast.Receiver(30000, master_receiver)
+	go bcast.Transmitter(30000, slave_sender)
+	go bcast.Receiver(30000, slave_receiver)
 
-	go bcast.Transmitter(30000, slave_msg_sender)
-	go bcast.Receiver(30000, slave_msg_receiver)*/
-
-	go func(){
-		//S_msg := Slave_msg{"Slavemelding"} 
-		G_msg := Global_order{"Global ordremelding"}
+	go func() {
+		master_message := Master_msg{"Hellooo, master message."}
+		slave_message := Slave_msg{"Hellooo, slave message."}
 		for {
-			//slave_msg_sender <- S_msg
-			//time.Sleep(1*time.Second)
-			global_order_sender <- G_msg
-			time.Sleep(1*time.Second)
+			master_sender <- master_message
+			slave_sender <- slave_message
+			time.Sleep(1 * time.Second)
 		}
 	}()
 
 	for {
-		select{
-		case a := <- global_order_receiver:
-			fmt.Println("Received this a : ", a)
-			time.Sleep(1*time.Second)
-		//case b := <- slave_msg_receiver :
-		//	fmt.Println("Received this b: ", b)
+		select {
+		case master := <- master_receiver:
+			fmt.Println("Receiving: ", master)
+			time.Sleep(1 * time.Second)
+		case slave := <- slave_receiver:
+			fmt.Println("Receiving: ", slave)
+			time.Sleep(1 * time.Second)
 		}
-
 	}
 }
