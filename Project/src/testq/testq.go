@@ -101,14 +101,43 @@ func make_new_order(button button_t, floor floor_t, order_state int, assigned_to
 }
 
 func add_new_internal_order(new_order order, internal_order_list [NUM_INTERNAL_ORDERS]order)[NUM_INTERNAL_ORDERS]order{
+  new_order_floor := new_order.floor
 
+  for i := 0; i < NUM_INTERNAL_ORDERS; i++{
+    if internal_order_list[i].order_state == inactive {
+      internal_order_list[i] = new_order
+      fmt.Println("New order was added!")
+      return internal_order_list
+    }
+    if internal_order_list[i].floor == new_order_floor{
+      fmt.Println("The order is already in the internal order list.")
+      return internal_order_list
+    }
+  }
+  fmt.Println("Something went wrong, we didn't add any new orders.")
   return internal_order_list
 }
 
-func add_new_global_order(new_order order, global_order_list [NUM_INTERNAL_ORDERS]order)[NUM_INTERNAL_ORDERS]order{
+func add_new_global_order(new_order order, global_order_list [NUM_GLOBAL_ORDERS]order)[NUM_GLOBAL_ORDERS]order{
+  new_order_floor := new_order.floor
+  new_order_button := new_order.button
 
+  for i := 0; i < NUM_GLOBAL_ORDERS; i++{
+    if global_order_list[i].order_state == inactive {
+      global_order_list[i] = new_order
+      fmt.Println("New order was added!")
+      return global_order_list
+    }
+    if global_order_list[i].floor == new_order_floor && global_order_list[i].button == new_order_button{
+      fmt.Println("The order is already in the internal order list.")
+      return global_order_list
+    }
+  }
+  fmt.Println("Something went wrong, we didn't add any new orders.")
   return global_order_list
 }
+
+// -- når man sletter en bestilling så må man flytte alle de andre bestillingene et hakk bort
 
 // initial values
 func Init_queue(){
@@ -119,18 +148,25 @@ func Init_queue(){
   var global_order_list [NUM_GLOBAL_ORDERS] order
   var my_order_list [NUM_ORDERS] order
 
-  // test example making an order
-  var order1 order
-  order1.button = BUTTON_UP
-  order1.floor = FLOOR_3
-  order1.order_state = inactive
-  order1.assigned_to = NONE
-
+  // test example making orders
+  var order1 = make_new_order(BUTTON_UP, FLOOR_2, ready, ELEV_2)
   var order2 = make_new_order(BUTTON_COMMAND, FLOOR_1, active, ELEV_3)
+  var order3 = make_new_order(BUTTON_UP, FLOOR_1, active, ELEV_1)
+  var order4 = make_new_order(BUTTON_COMMAND, FLOOR_2, active, ELEV_2)
 
-  global_order_list[0] = order1
-  global_order_list[5] = order1
-  internal_order_list[3] = order2
+  //global_order_list[0] = order1
+  //global_order_list[5] = order1
+  //internal_order_list[3] = order2
+
+  internal_order_list = add_new_internal_order(order2, internal_order_list)
+  internal_order_list = add_new_internal_order(order1, internal_order_list)
+  internal_order_list = add_new_internal_order(order2, internal_order_list)
+
+  global_order_list = add_new_global_order(order2, global_order_list)
+  global_order_list = add_new_global_order(order1, global_order_list)
+  global_order_list = add_new_global_order(order2, global_order_list)
+  global_order_list = add_new_global_order(order3, global_order_list)
+  global_order_list = add_new_global_order(order4, global_order_list)
 
   // make my order list from the internal and global lists
   my_order_list = make_my_order_list(internal_order_list, global_order_list)
