@@ -1,4 +1,4 @@
-// The orders have x states:
+// The orders have 6 states:
 // Inactive: no order
 // Added: the order has been added to the list, but not yet assigned
 // Assigned: the order has been assigned
@@ -80,9 +80,6 @@ type elev_info struct{
   elev_state int
 }
 
-// declare variables
-var order_state int
-
 func make_my_order_list(internal_order_list [NUM_INTERNAL_ORDERS]order, global_order_list [NUM_GLOBAL_ORDERS]order)[NUM_ORDERS]order{
   // add first the elements from the internal list
   // then the elements of the global list
@@ -99,6 +96,7 @@ func make_my_order_list(internal_order_list [NUM_INTERNAL_ORDERS]order, global_o
 }
 
 func make_new_order(button button_t, floor floor_t, order_state int, assigned_to assigned_t) order{
+  // make new order with the elements you choose
   var new_order order
 
   new_order.button = button
@@ -110,6 +108,7 @@ func make_new_order(button button_t, floor floor_t, order_state int, assigned_to
 }
 
 func add_new_internal_order(new_order order, internal_order_list [NUM_INTERNAL_ORDERS]order)[NUM_INTERNAL_ORDERS]order{
+  // add new order in the internal list, if it's not already there
   new_order_floor := new_order.floor
 
   for i := 0; i < NUM_INTERNAL_ORDERS; i++{
@@ -128,6 +127,7 @@ func add_new_internal_order(new_order order, internal_order_list [NUM_INTERNAL_O
 }
 
 func add_new_global_order(new_order order, global_order_list [NUM_GLOBAL_ORDERS]order)[NUM_GLOBAL_ORDERS]order{
+  // add new order in the global list, if it's not already there
   new_order_floor := new_order.floor
   new_order_button := new_order.button
 
@@ -147,6 +147,8 @@ func add_new_global_order(new_order order, global_order_list [NUM_GLOBAL_ORDERS]
 }
 
 func delete_internal_order(internal_order_list [NUM_INTERNAL_ORDERS]order) [NUM_INTERNAL_ORDERS]order{
+  // delete all finished orders in the internal list by moving all the "later" orders one step forward
+  // make the last element in the list an "empty" order
   clean_order := make_new_order(BUTTON_UP, FLOOR_1, inactive, NONE)
 
   for i := 0; i < NUM_INTERNAL_ORDERS; i++{
@@ -167,6 +169,8 @@ func delete_internal_order(internal_order_list [NUM_INTERNAL_ORDERS]order) [NUM_
 }
 
 func delete_global_order(global_order_list [NUM_GLOBAL_ORDERS]order) [NUM_GLOBAL_ORDERS]order{
+  // delete all finished orders in the global list by moving all the "later" orders one step forward
+  // make the last element in the list an "empty" order
   clean_order := make_new_order(BUTTON_UP, FLOOR_1, inactive, NONE)
 
   for i := 0; i < NUM_GLOBAL_ORDERS; i++{
@@ -187,6 +191,7 @@ func delete_global_order(global_order_list [NUM_GLOBAL_ORDERS]order) [NUM_GLOBAL
 }
 
 // initial values
+// and also some testing
 func Init_queue(){
   fmt.Println("Helloo, I'm initializing the queue, yayy!")
 
@@ -214,7 +219,6 @@ func Init_queue(){
   // make my order list from the internal and global lists
   my_order_list = make_my_order_list(internal_order_list, global_order_list)
 
-  //fmt.Println("This is my global order list: ", global_order_list)
   fmt.Println("This is my order list: ", my_order_list)
 
   internal_order_list = delete_internal_order(internal_order_list)
