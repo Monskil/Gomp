@@ -5,6 +5,7 @@ import (
 	"time"
 )
 
+// ------------------------ from global -------------------------
 const MOTOR_SPEED int = 2800
 const NUM_FLOORS = 4
 const NUM_BUTTONS = 3
@@ -54,6 +55,7 @@ const (
 	DIR_STOP
 	DIR_UP
 )
+//---------------------------------------------------------------
 
 func Set_button_lamp(button button_t, floor floor_t, on_off on_off_t) {
 	if on_off == ON {
