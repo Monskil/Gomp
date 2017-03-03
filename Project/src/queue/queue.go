@@ -5,14 +5,44 @@ import(
   "driver"
 )
 
-//-- order states
+// order states
+const (
+	inactive = int = iota
+	added
+	assigned
+	ready
+	active
+)
 
 type order struct{
-  Button driver.button_t
-
-
+  	button global.button_t
+	floor global.floor_t
+	order_state int
+	assigned_to assigned_t
 }
 
+type elev_info struct{
+	elev_ip int
+	elev_last_floor global.floor_t
+	elev_dir global.motor_direction_t
+	elev_state int
+}
+
+// declare variables
+var order_state int
+
+// initial values
+func Init_queue(){
+	order_state = inactive
+}
+
+// we want lists of length [n] and type order
+global_order_list = [6] order
+internal_order_list = [4] order
+my_order_list = [10] order
+
+// ------
+	
 //Global_order is the order queue the master is sending out, and is the order that should be acted out from
 type Global_order struct{
 		floor floor_t
