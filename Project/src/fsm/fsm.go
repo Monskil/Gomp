@@ -29,6 +29,7 @@ const (
 	door_open
 )
 
+// ---- moved to queue ----
 // order states
 const (
 	inactive = int = iota
@@ -40,6 +41,7 @@ const (
 
 // order state management will be fixed later
 //var order_state int
+--------
 
 // declare variables
 var elev_state int
@@ -60,7 +62,7 @@ type Channels struct {
 }
 
 // initial values
-func Init(channel Channels){
+func Init(){
 	elev_state = idle
 	dir = DIR_STOP
 	floor = FLOOR_1
