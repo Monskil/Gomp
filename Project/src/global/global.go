@@ -1,5 +1,13 @@
 package global
 
+const MOTOR_SPEED int = 2800
+const NUM_FLOORS = 4
+const NUM_BUTTONS = 3
+const NUM_ORDER_STATES = 5
+const NUM_GLOBAL_ORDERS = 6
+const NUM_INTERNAL_ORDERS = 4
+const NUM_ORDERS = NUM_GLOBAL_ORDERS + NUM_INTERNAL_ORDERS
+
 type button_t int
 
 const (
