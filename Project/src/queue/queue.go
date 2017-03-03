@@ -9,10 +9,51 @@
 package queue
 
 import(
-  "global"
+  //"./global"
   //"driver"
   "fmt"
 )
+
+// ---------------- from global ------------------
+const NUM_GLOBAL_ORDERS = 6
+const NUM_INTERNAL_ORDERS = 4
+const NUM_ORDERS = NUM_GLOBAL_ORDERS + NUM_INTERNAL_ORDERS
+
+type button_t int
+
+const (
+	BUTTON_UP = iota
+	BUTTON_DOWN
+	BUTTON_COMMAND
+)
+
+type floor_t int
+
+const (
+	FLOOR_1 = iota
+	FLOOR_2
+	FLOOR_3
+	FLOOR_4
+)
+
+type motor_direction_t int
+
+const (
+	DIR_DOWN = -1 << iota
+	DIR_STOP
+	DIR_UP
+)
+
+type assigned_t int
+
+const (
+  NONE = iota
+  ELEV_1
+  ELEV_2
+  ELEV_3
+)
+// -----------------------------------------------
+
 
 // order states
 const (
