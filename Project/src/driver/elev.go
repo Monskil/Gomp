@@ -169,6 +169,6 @@ func Elevator_init() {
 	Io_init()
 
 	fmt.Println("Ready to clear!")
-	Set_all_lamps(OFF)
+	Set_all_lamps(global.OFF)
 	Elevator_to_floor(global.FLOOR_1)
 }
