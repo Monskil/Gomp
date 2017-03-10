@@ -3,12 +3,8 @@ package driver
 import (
 	"fmt"
 	"time"
+	"global"
 )
-
-// ------------------------ from global -------------------------
-const MOTOR_SPEED int = 2800
-const NUM_FLOORS = 4
-const NUM_BUTTONS = 3
 
 var lamp_channel_matrix = [NUM_FLOORS][NUM_BUTTONS]int{
 	{LIGHT_UP1, LIGHT_DOWN1, LIGHT_COMMAND1},
@@ -24,66 +20,33 @@ var button_channel_matrix = [NUM_FLOORS][NUM_BUTTONS]int{
 	{BUTTON_UP4, BUTTON_DOWN4, BUTTON_COMMAND4},
 }
 
-type button_t int
-
-const (
-	BUTTON_UP = iota
-	BUTTON_DOWN
-	BUTTON_COMMAND
-)
-
-type floor_t int
-
-const (
-	FLOOR_1 = iota
-	FLOOR_2
-	FLOOR_3
-	FLOOR_4
-)
-
-type on_off_t int
-
-const (
-	OFF = iota
-	ON
-)
-
-type motor_direction_t int
-
-const (
-	DIR_DOWN = -1 << iota
-	DIR_STOP
-	DIR_UP
-)
-//---------------------------------------------------------------
-
-func Set_button_lamp(button button_t, floor floor_t, on_off on_off_t) {
-	if on_off == ON {
+func Set_button_lamp(button global.Button_t, floor global.Floor_t, on_off global.On_off_t) {
+	if on_off == global.ON {
 		Io_set_bit(lamp_channel_matrix[floor][button])
 	} else {
 		Io_clear_bit(lamp_channel_matrix[floor][button])
 	}
 }
 
-func Set_floor_indicator_lamp(floor floor_t) {
+func Set_floor_indicator_lamp(floor global.Floor_t) {
 	switch {
-	case floor == FLOOR_1:
+	case floor == global.FLOOR_1:
 		Io_clear_bit(LIGHT_FLOOR_IND1)
 		Io_clear_bit(LIGHT_FLOOR_IND2)
-	case floor == FLOOR_2:
+	case floor == global.FLOOR_2:
 		Io_clear_bit(LIGHT_FLOOR_IND1)
 		Io_set_bit(LIGHT_FLOOR_IND2)
-	case floor == FLOOR_3:
+	case floor == global.FLOOR_3:
 		Io_set_bit(LIGHT_FLOOR_IND1)
 		Io_clear_bit(LIGHT_FLOOR_IND2)
-	case floor == FLOOR_4:
+	case floor == global.FLOOR_4:
 		Io_set_bit(LIGHT_FLOOR_IND1)
 		Io_set_bit(LIGHT_FLOOR_IND2)
 	}
 }
 
-func Set_door_open_lamp(on_off on_off_t) {
-	if on_off == ON {
+func Set_door_open_lamp(on_off global.On_off_t) {
+	if on_off == global.ON {
 		Io_set_bit(LIGHT_DOOR_OPEN)
 	} else {
 		Io_clear_bit(LIGHT_DOOR_OPEN)
@@ -91,13 +54,13 @@ func Set_door_open_lamp(on_off on_off_t) {
 }
 
 func Open_door() {
-	Set_door_open_lamp(ON)
+	Set_door_open_lamp(global.ON)
 	time.Sleep(3 * time.Second)
-	Set_door_open_lamp(OFF)
+	Set_door_open_lamp(global.OFF)
 }
 
-func Set_stop_lamp(on_off on_off_t) {
-	if on_off == ON {
+func Set_stop_lamp(on_off global.On_off_t) {
+	if on_off == global.ON {
 		Io_set_bit(LIGHT_STOP)
 	} else {
 		Io_clear_bit(LIGHT_STOP)
@@ -121,34 +84,34 @@ func Get_floor_sensor_signal() int {
 	}
 }
 
-func Set_motor_direction(dir motor_direction_t) {
-	if dir == DIR_STOP {
+func Set_motor_direction(dir global.Motor_direction_t) {
+	if dir == global.DIR_STOP {
 		Io_write_analog(MOTOR, 0)
-	} else if dir == DIR_UP {
+	} else if dir == global.DIR_UP {
 		Io_clear_bit(MOTORDIR)
 		Io_write_analog(MOTOR, MOTOR_SPEED)
-	} else if dir == DIR_DOWN {
+	} else if dir == global.DIR_DOWN {
 		Io_set_bit(MOTORDIR)
 		Io_write_analog(MOTOR, MOTOR_SPEED)
 	}
 }
 
-func Get_button_signal(button button_t, floor floor_t) int {
+func Get_button_signal(button global.Button_t, floor global.Floor_t) int {
 	return Io_read_bit(button_channel_matrix[floor][button])
 }
 
-func Set_all_lamps(on_off on_off_t) {
+func Set_all_lamps(on_off global.On_off_t) {
 	// button lamps
-	Set_button_lamp(BUTTON_UP, FLOOR_1, on_off)
-	Set_button_lamp(BUTTON_UP, FLOOR_2, on_off)
-	Set_button_lamp(BUTTON_UP, FLOOR_3, on_off)
-	Set_button_lamp(BUTTON_DOWN, FLOOR_2, on_off)
-	Set_button_lamp(BUTTON_DOWN, FLOOR_3, on_off)
-	Set_button_lamp(BUTTON_DOWN, FLOOR_4, on_off)
-	Set_button_lamp(BUTTON_COMMAND, FLOOR_1, on_off)
-	Set_button_lamp(BUTTON_COMMAND, FLOOR_2, on_off)
-	Set_button_lamp(BUTTON_COMMAND, FLOOR_3, on_off)
-	Set_button_lamp(BUTTON_COMMAND, FLOOR_4, on_off)
+	Set_button_lamp(global.BUTTON_UP, global.FLOOR_1, on_off)
+	Set_button_lamp(global.BUTTON_UP, global.FLOOR_2, on_off)
+	Set_button_lamp(global.BUTTON_UP, global.FLOOR_3, on_off)
+	Set_button_lamp(global.BUTTON_DOWN, global.FLOOR_2, on_off)
+	Set_button_lamp(global.BUTTON_DOWN, global.FLOOR_3, on_off)
+	Set_button_lamp(global.BUTTON_DOWN, global.FLOOR_4, on_off)
+	Set_button_lamp(global.BUTTON_COMMAND, global.FLOOR_1, on_off)
+	Set_button_lamp(global.BUTTON_COMMAND, global.FLOOR_2, on_off)
+	Set_button_lamp(global.BUTTON_COMMAND, global.FLOOR_3, on_off)
+	Set_button_lamp(global.BUTTON_COMMAND, global.FLOOR_4, on_off)
 
 	// door open lamp
 	Set_door_open_lamp(on_off)
@@ -157,15 +120,15 @@ func Set_all_lamps(on_off on_off_t) {
 	Set_stop_lamp(on_off)
 }
 
-func Elevator_to_floor(floor floor_t) {
+func Elevator_to_floor(floor global.Floor_t) {
 	switch {
-	case floor == FLOOR_1:
+	case floor == global.FLOOR_1:
 		Elevator_to_floor_int(1)
-	case floor == FLOOR_2:
+	case floor == global.FLOOR_2:
 		Elevator_to_floor_int(2)
-	case floor == FLOOR_3:
+	case floor == global.FLOOR_3:
 		Elevator_to_floor_int(3)
-	case floor == FLOOR_4:
+	case floor == global.FLOOR_4:
 		Elevator_to_floor_int(4)
 	}
 	Set_floor_indicator_lamp(floor)
@@ -182,9 +145,9 @@ func Elevator_to_floor_int(floor int) {
 	}()
 	for Get_floor_sensor_signal() == -1 {
 		if !timeout {
-			Set_motor_direction(DIR_UP)
+			Set_motor_direction(global.DIR_UP)
 		} else if timeout {
-			Set_motor_direction(DIR_DOWN)
+			Set_motor_direction(global.DIR_DOWN)
 		}
 	}
 
@@ -192,14 +155,14 @@ func Elevator_to_floor_int(floor int) {
 	my_floor = Get_floor_sensor_signal()
 	if my_floor < floor {
 		for Get_floor_sensor_signal() != floor {
-			Set_motor_direction(DIR_UP)
+			Set_motor_direction(global.DIR_UP)
 		}
 	} else if my_floor > floor {
 		for Get_floor_sensor_signal() != floor {
-			Set_motor_direction(DIR_DOWN)
+			Set_motor_direction(global.DIR_DOWN)
 		}
 	}
-	Set_motor_direction(DIR_STOP)
+	Set_motor_direction(global.DIR_STOP)
 }
 
 func Elevator_init() {
@@ -207,5 +170,5 @@ func Elevator_init() {
 
 	fmt.Println("Ready to clear!")
 	Set_all_lamps(OFF)
-	Elevator_to_floor(FLOOR_1)
+	Elevator_to_floor(global.FLOOR_1)
 }
