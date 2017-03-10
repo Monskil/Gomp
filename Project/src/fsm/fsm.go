@@ -17,19 +17,19 @@ import (
 
 // elevator states
 const (
-	idle int = iota
-	moving
-	door_open
+	Idle int = iota
+	Moving
+	Door_open
 )
 
 // ---- moved to queue ----
 // order states
 const (
-	inactive = int = iota
-	added
-	assigned
-	ready
-	active
+	Inactive = int = iota
+	Added
+	Assigned
+	Ready
+	Active
 )
 
 // order state management will be fixed later
@@ -38,8 +38,8 @@ const (
 
 // declare variables
 var elev_state int
-var floor global.floor_t
-var dir global.motor_direction_t
+var floor global.Floor_t
+var dir global.Motor_direction_t
 
 // make channels
 type Channels struct {
@@ -49,16 +49,16 @@ type Channels struct {
 	Door_close chan bool
 	
 	// channels setting values
-	Motor_dir chan global.motor_direction_t
-	Floor_lamp chan global.floor_t
+	Motor_dir chan global.Motor_direction_t
+	Floor_lamp chan global.Floor_t
 	Door_lamp chan int
 }
 
 // initial values
 func Init(){
-	elev_state = idle
-	dir = DIR_STOP
-	floor = FLOOR_1
+	elev_state = Idle
+	dir = global.DIR_STOP
+	floor = global.FLOOR_1
 
 	fmt.Println("FMS init done.")
 }
@@ -82,7 +82,7 @@ func event_new_order(channel Channels){
 	fmt.Println("Event: new order.")
 
 	switch elev_state {
-	case idle:
+	case Idle:
 		// get direction of the next order
 		//dir = direction of the next order
 		// if you are at the correct floor:
@@ -93,7 +93,7 @@ func event_new_order(channel Channels){
 		// 	channel.Motor_dir <- dir
 		//	elev_state = moving
 		//	order_state = active
-	case door_open:
+	case Door_open:
 		// if you are at the correct floor:
 		//	order_state = finished
 		
@@ -104,14 +104,14 @@ func event_new_order(channel Channels){
 }
 
 // event: floor reached
-func event_floor_reached(channel Channels, floor def.floor_t){
+func event_floor_reached(channel Channels, floor global.Floor_t){
 	fmt.Println("Event: floor reached.")
 	
 	// turn on floor lamp
 	channel.Floor_lamp <- floor
 	
 	switch elev_state {
-	case moving:
+	case Moving:
 		// check if order at this floor
 		// if yes:
 		//	dir = def.DIR_STOP
@@ -129,7 +129,7 @@ func event_door_close(channel Channels){
 	fmt.Println("Event: door close.")
 	
 	switch elev_state {
-	case door_open:
+	case Door_open:
 		// turn off door lamp
 		channel.Door_lamp <- false
 		
@@ -138,13 +138,14 @@ func event_door_close(channel Channels){
 		//dir = direction of the next order
 		
 		// set motor direction
+		// - hvor kommer dir fra?
 		channel.Motor_dir <- dir
 		
 		// set elevator state
-		if dir == def.DIR_STOP{
-			elev_state = idle
+		if dir == global.DIR_STOP{
+			elev_state = Idle
 		} else {
-			elev_state = moving
+			elev_state = Moving
 			// order_state = active
 		}
 		
