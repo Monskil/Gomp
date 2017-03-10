@@ -1,10 +1,10 @@
 package network
 
 import (
-	"../queue"
-	"bcast"
 	"fmt"
 	"global"
+	"network/bcast"
+	"queue"
 	"time"
 )
 
@@ -34,15 +34,15 @@ func Test_network() {
 	go bcast.Receiver(30000, slave_receiver)
 
 	// make lists
-	var internal_order_list [NUM_INTERNAL_ORDERS]Order
-	var global_order_list [NUM_GLOBAL_ORDERS]Order
-	var my_order_list [NUM_ORDERS]Order
+	var internal_order_list [global.NUM_INTERNAL_ORDERS]queue.Order
+	var global_order_list [global.NUM_GLOBAL_ORDERS]queue.Order
+	var my_order_list [global.NUM_ORDERS]queue.Order
 
 	// test example making orders
-	var order1 = queue.Make_new_order(BUTTON_UP, FLOOR_2, finished, ELEV_2)
-	var order2 = queue.Make_new_order(BUTTON_COMMAND, FLOOR_1, active, ELEV_3)
-	var order3 = queue.Make_new_order(BUTTON_UP, FLOOR_1, active, ELEV_1)
-	var order4 = queue.Make_new_order(BUTTON_COMMAND, FLOOR_2, active, ELEV_2)
+	var order1 = queue.Make_new_order(global.BUTTON_UP, global.FLOOR_2, queue.Finished, global.ELEV_2)
+	var order2 = queue.Make_new_order(global.BUTTON_COMMAND, global.FLOOR_1, queue.Active, global.ELEV_3)
+	var order3 = queue.Make_new_order(global.BUTTON_UP, global.FLOOR_1, queue.Active, global.ELEV_1)
+	var order4 = queue.Make_new_order(global.BUTTON_COMMAND, global.FLOOR_2, queue.Active, global.ELEV_2)
 
 	internal_order_list = queue.Add_new_internal_order(order1, internal_order_list)
 	internal_order_list = queue.Add_new_internal_order(order2, internal_order_list)
