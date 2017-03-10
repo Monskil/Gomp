@@ -36,7 +36,7 @@ func main() {
 	//heQueue := make(chan [global.NUM_GLOBAL_ORDERS]queue.Order)
 	//heQueue <- global_order_list
 
-	go ordermanager.Detect_external_button_pressed(newButton)
+	go ordermanager.Detect_button_pressed(newButton)
 	go queue.Handle_button_pressed(newButton)
 
 	for { /*
