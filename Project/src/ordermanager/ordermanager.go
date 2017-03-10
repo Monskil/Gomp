@@ -13,7 +13,7 @@ import (
 // -- check fsm
 // -- try making an "easy" version for the internal orders first
 
-func Detect_external_button_pressed(newButton chan queue.Order) {
+func Detect_button_pressed(newButton chan queue.Order) {
 	var order queue.Order
 
 	for {
@@ -62,12 +62,49 @@ func Detect_external_button_pressed(newButton chan queue.Order) {
 		}
 		if driver.Get_button_signal(global.BUTTON_DOWN, global.FLOOR_4) != 0 {
 			order.Button = global.BUTTON_DOWN
-			order.Floor = global.FLOOR_1
+			order.Floor = global.FLOOR_4
 			order.Order_state = queue.Active
 			order.Assigned_to = global.ELEV_1
 			newButton <- order
 			time.Sleep(1 * time.Second)
 		}
+		if driver.Get_button_signal(global.BUTTON_COMMAND, global.FLOOR_1) != 0 {
+			order.Button = global.BUTTON_COMMAND
+			order.Floor = global.FLOOR_1
+			order.Order_state = queue.Active
+			order.Assigned_to = global.ELEV_1
+			newButton <- order
+			time.Sleep(1 * time.Second)
+
+		}
+		if driver.Get_button_signal(global.BUTTON_COMMAND, global.FLOOR_2) != 0 {
+			order.Button = global.BUTTON_COMMAND
+			order.Floor = global.FLOOR_2
+			order.Order_state = queue.Active
+			order.Assigned_to = global.ELEV_1
+			newButton <- order
+			time.Sleep(1 * time.Second)
+
+		}
+		if driver.Get_button_signal(global.BUTTON_COMMAND, global.FLOOR_3) != 0 {
+			order.Button = global.BUTTON_COMMAND
+			order.Floor = global.FLOOR_3
+			order.Order_state = queue.Active
+			order.Assigned_to = global.ELEV_1
+			newButton <- order
+			time.Sleep(1 * time.Second)
+
+		}
+		if driver.Get_button_signal(global.BUTTON_COMMAND, global.FLOOR_4) != 0 {
+			order.Button = global.BUTTON_COMMAND
+			order.Floor = global.FLOOR_4
+			order.Order_state = queue.Active
+			order.Assigned_to = global.ELEV_1
+			newButton <- order
+			time.Sleep(1 * time.Second)
+
+		}
+
 	}
 }
 
