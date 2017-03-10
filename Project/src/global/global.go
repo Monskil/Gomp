@@ -8,21 +8,21 @@ const NUM_GLOBAL_ORDERS = 6
 const NUM_INTERNAL_ORDERS = 4
 const NUM_ORDERS = NUM_GLOBAL_ORDERS + NUM_INTERNAL_ORDERS
 
-var lamp_channel_matrix = [NUM_FLOORS][NUM_BUTTONS]int{
+var Lamp_channel_matrix = [NUM_FLOORS][NUM_BUTTONS]int{
 	{LIGHT_UP1, LIGHT_DOWN1, LIGHT_COMMAND1},
 	{LIGHT_UP2, LIGHT_DOWN2, LIGHT_COMMAND2},
 	{LIGHT_UP3, LIGHT_DOWN3, LIGHT_COMMAND3},
 	{LIGHT_UP4, LIGHT_DOWN4, LIGHT_COMMAND4},
 }
 
-var button_channel_matrix = [NUM_FLOORS][NUM_BUTTONS]int{
+var Button_channel_matrix = [NUM_FLOORS][NUM_BUTTONS]int{
 	{BUTTON_UP1, BUTTON_DOWN1, BUTTON_COMMAND1},
 	{BUTTON_UP2, BUTTON_DOWN2, BUTTON_COMMAND2},
 	{BUTTON_UP3, BUTTON_DOWN3, BUTTON_COMMAND3},
 	{BUTTON_UP4, BUTTON_DOWN4, BUTTON_COMMAND4},
 }
 
-type button_t int
+type Button_t int
 
 const (
 	BUTTON_UP = iota
@@ -30,7 +30,7 @@ const (
 	BUTTON_COMMAND
 )
 
-type floor_t int
+type Floor_t int
 
 const (
 	FLOOR_1 = iota
@@ -39,14 +39,14 @@ const (
 	FLOOR_4
 )
 
-type on_off_t int
+type On_off_t int
 
 const (
 	OFF = iota
 	ON
 )
 
-type motor_direction_t int
+type Motor_direction_t int
 
 const (
 	DIR_DOWN = -1 << iota
