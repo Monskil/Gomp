@@ -6,18 +6,14 @@ import (
 	"global"
 )
 
-const MOTOR_SPEED int = 2800
-const NUM_FLOORS = 4
-const NUM_BUTTONS = 3
-
-var lamp_channel_matrix = [NUM_FLOORS][NUM_BUTTONS]int{
+var lamp_channel_matrix = [global.NUM_FLOORS][global.NUM_BUTTONS]int{
 	{LIGHT_UP1, LIGHT_DOWN1, LIGHT_COMMAND1},
 	{LIGHT_UP2, LIGHT_DOWN2, LIGHT_COMMAND2},
 	{LIGHT_UP3, LIGHT_DOWN3, LIGHT_COMMAND3},
 	{LIGHT_UP4, LIGHT_DOWN4, LIGHT_COMMAND4},
 }
 
-var button_channel_matrix = [NUM_FLOORS][NUM_BUTTONS]int{
+var button_channel_matrix = [global.NUM_FLOORS][global.NUM_BUTTONS]int{
 	{BUTTON_UP1, BUTTON_DOWN1, BUTTON_COMMAND1},
 	{BUTTON_UP2, BUTTON_DOWN2, BUTTON_COMMAND2},
 	{BUTTON_UP3, BUTTON_DOWN3, BUTTON_COMMAND3},
@@ -93,10 +89,10 @@ func Set_motor_direction(dir global.Motor_direction_t) {
 		Io_write_analog(MOTOR, 0)
 	} else if dir == global.DIR_UP {
 		Io_clear_bit(MOTORDIR)
-		Io_write_analog(MOTOR, MOTOR_SPEED)
+		Io_write_analog(MOTOR, global.MOTOR_SPEED)
 	} else if dir == global.DIR_DOWN {
 		Io_set_bit(MOTORDIR)
-		Io_write_analog(MOTOR, MOTOR_SPEED)
+		Io_write_analog(MOTOR, global.MOTOR_SPEED)
 	}
 }
 
