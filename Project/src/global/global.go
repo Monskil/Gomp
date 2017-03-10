@@ -40,3 +40,12 @@ const (
 	DIR_STOP
 	DIR_UP
 )
+
+type Assigned_t int
+
+const (
+  NONE = iota
+  ELEV_1
+  ELEV_2
+  ELEV_3
+)
