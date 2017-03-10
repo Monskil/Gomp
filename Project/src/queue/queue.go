@@ -32,13 +32,14 @@ type Order struct {
 }
 
 type Elev_info struct {
-  Elev_ip         int
+  Elev_ip         string
   Elev_last_floor global.Floor_t
   Elev_dir        global.Motor_direction_t
   Elev_state      int
 }
 
-func Make_my_order_list(internal_order_list [global.NUM_INTERNAL_ORDERS]Order, global_order_list [global.NUM_GLOBAL_ORDERS]Order) [global.NUM_ORDERS]Order {
+/*
+func Make_my_order_list(internal_order_list [global.NUM_GLOBAL_ORDERS]Order, global_order_list [global.NUM_GLOBAL_ORDERS]Order) [global.NUM_ORDERS]Order {
   // add first the elements from the internal list
   // then the elements of the global list
 
@@ -83,7 +84,68 @@ func Add_new_internal_order(new_order Order, internal_order_list [global.NUM_INT
   fmt.Println("Something went wrong, we didn't add any new orders.")
   return internal_order_list
 }
+*/
 
+var Global_order_list [global.NUM_GLOBAL_ORDERS]Order
+
+func Handle_button_pressed(newButton chan Order) {
+  for {
+    select {
+    case buttonPressed := <-newButton:
+      fmt.Println("detekterer et knappetrykk: ", buttonPressed)
+      new_order_floor := buttonPressed.Floor
+      new_order_button := buttonPressed.Button
+
+      for i := 0; i < global.NUM_GLOBAL_ORDERS; i++ {
+
+        if Global_order_list[i].Order_state == Inactive {
+          Global_order_list[i] = buttonPressed
+          fmt.Println("New order was added!")
+          fmt.Println(Global_order_list)
+          break
+        }
+        if Global_order_list[i].Floor == new_order_floor && Global_order_list[i].Button == new_order_button {
+          fmt.Println("The order is already in the global order list.")
+          fmt.Println(Global_order_list)
+          break
+        }
+      }
+      //fmt.Println("Something went wrong, we didn't add any new orders.")
+    }
+  }
+}
+
+/*
+func Add_new_global_order_chan(newButton chan Order, theQueue chan [global.NUM_GLOBAL_ORDERS]Order) {
+  for {
+    select {
+    case buttonPressed := <-newButton:
+
+      fmt.Println("detekterer et knappetrykk: ", buttonPressed)
+      new_order_floor := buttonPressed.Floor
+      new_order_button := buttonPressed.Button
+
+
+      for i := 0; i < global.NUM_GLOBAL_ORDERS; i++ {
+        fmt.Println(global_order_list)
+        if global_order_list[i].Order_state == Inactive {
+          global_order_list[i] = buttonPressed
+          fmt.Println("New order was added!")
+
+          fmt.Println("yo")
+        }
+        if global_order_list[i].Floor == new_order_floor && global_order_list[i].Button == new_order_button {
+          fmt.Println("The order is already in the global order list.")
+        }
+      }
+      fmt.Println("Something went wrong, we didn't add any new orders.")
+      //theQueue <- global_order_list
+
+    }
+  }
+}*/
+
+/*
 func Add_new_global_order(new_order Order, global_order_list [global.NUM_GLOBAL_ORDERS]Order) [global.NUM_GLOBAL_ORDERS]Order {
   // add new order in the global list, if it's not already there
   new_order_floor := new_order.Floor
@@ -102,8 +164,8 @@ func Add_new_global_order(new_order Order, global_order_list [global.NUM_GLOBAL_
   }
   fmt.Println("Something went wrong, we didn't add any new orders.")
   return global_order_list
-}
-
+}*/
+/*
 func Delete_internal_order(internal_order_list [global.NUM_INTERNAL_ORDERS]Order) [global.NUM_INTERNAL_ORDERS]Order {
   // delete all finished orders in the internal list by moving all the "later" orders one step forward
   // make the last element in the list an "empty" order
@@ -154,34 +216,36 @@ func Init_queue() {
   fmt.Println("Helloo, I'm initializing the queue, yayy!")
 
   // make lists
-  var internal_order_list [global.NUM_INTERNAL_ORDERS]Order
-  var global_order_list [global.NUM_GLOBAL_ORDERS]Order
-  var my_order_list [global.NUM_ORDERS]Order
+  //var internal_order_list [global.NUM_INTERNAL_ORDERS]Order
+  //var global_order_list [global.NUM_GLOBAL_ORDERS]Order
+  //var my_order_list [global.NUM_ORDERS]Order
 
-  // test example making orders
-  var order1 = Make_new_order(global.BUTTON_UP, global.FLOOR_2, Finished, global.ELEV_2)
-  var order2 = Make_new_order(global.BUTTON_COMMAND, global.FLOOR_1, Active, global.ELEV_3)
-  var order3 = Make_new_order(global.BUTTON_UP, global.FLOOR_1, Active, global.ELEV_1)
-  var order4 = Make_new_order(global.BUTTON_COMMAND, global.FLOOR_2, Active, global.ELEV_2)
+  // test example making orders/*
+  /*
+     var order1 = Make_new_order(global.BUTTON_UP, global.FLOOR_2, Finished, global.ELEV_2)
+     var order2 = Make_new_order(global.BUTTON_COMMAND, global.FLOOR_1, Active, global.ELEV_3)
+     var order3 = Make_new_order(global.BUTTON_UP, global.FLOOR_1, Active, global.ELEV_1)
+     var order4 = Make_new_order(global.BUTTON_COMMAND, global.FLOOR_2, Active, global.ELEV_2)
 
-  internal_order_list = Add_new_internal_order(order1, internal_order_list)
-  internal_order_list = Add_new_internal_order(order2, internal_order_list)
-  internal_order_list = Add_new_internal_order(order2, internal_order_list)
+     internal_order_list = Add_new_internal_order(order1, internal_order_list)
+     internal_order_list = Add_new_internal_order(order2, internal_order_list)
+     internal_order_list = Add_new_internal_order(order2, internal_order_list)
 
-  global_order_list = Add_new_global_order(order2, global_order_list)
-  global_order_list = Add_new_global_order(order1, global_order_list)
-  global_order_list = Add_new_global_order(order2, global_order_list)
-  global_order_list = Add_new_global_order(order3, global_order_list)
-  global_order_list = Add_new_global_order(order4, global_order_list)
+     global_order_list = Add_new_global_order(order2, global_order_list)
+     global_order_list = Add_new_global_order(order1, global_order_list)
+     global_order_list = Add_new_global_order(order2, global_order_list)
+     global_order_list = Add_new_global_order(order3, global_order_list)
+     global_order_list = Add_new_global_order(order4, global_order_list)
 
-  // make my order list from the internal and global lists
-  my_order_list = Make_my_order_list(internal_order_list, global_order_list)
+     // make my order list from the internal and global lists
+     my_order_list = Make_my_order_list(internal_order_list, global_order_list)
 
-  fmt.Println("This is my order list: ", my_order_list)
+     fmt.Println("This is my order list: ", my_order_list)
 
-  internal_order_list = Delete_internal_order(internal_order_list)
-  global_order_list = Delete_global_order(global_order_list)
+     internal_order_list = Delete_internal_order(internal_order_list)
+     global_order_list = Delete_global_order(global_order_list)
 
-  my_order_list = Make_my_order_list(internal_order_list, global_order_list)
-  fmt.Println("This is my new order list: ", my_order_list)
+     my_order_list = Make_my_order_list(internal_order_list, global_order_list)
+     fmt.Println("This is my new order list: ", my_order_list)
 }
+*/
