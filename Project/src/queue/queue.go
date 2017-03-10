@@ -97,6 +97,10 @@ func Handle_button_pressed(newButton chan Order) {
       new_order_button := buttonPressed.Button
 
       for i := 0; i < global.NUM_GLOBAL_ORDERS; i++ {
+        if buttonPressed.Button == global.BUTTON_COMMAND {
+          fmt.Println("Not an external order, should not be in global list")
+          break
+        }
 
         if Global_order_list[i].Order_state == Inactive {
           Global_order_list[i] = buttonPressed
