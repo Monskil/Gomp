@@ -6,6 +6,10 @@ import (
 	"global"
 )
 
+const MOTOR_SPEED int = 2800
+const NUM_FLOORS = 4
+const NUM_BUTTONS = 3
+
 var lamp_channel_matrix = [NUM_FLOORS][NUM_BUTTONS]int{
 	{LIGHT_UP1, LIGHT_DOWN1, LIGHT_COMMAND1},
 	{LIGHT_UP2, LIGHT_DOWN2, LIGHT_COMMAND2},
