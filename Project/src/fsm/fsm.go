@@ -2,6 +2,7 @@
 // Idle: not moving, waiting for orders
 // Moving: moving, handling order
 // Door open: at a floor with the door open, finishing order
+// Stuck: if you've been moving for more than 5 seconds (have timer on moving) you're stuck, when reaching floor -> not stuck anymore
 //
 // We have 3 events:
 // New order: a new order is received
@@ -13,48 +14,38 @@ package fsm
 import (
 	"fmt"
 	"global"
+	"ordermanager"
+	"driver"
+	"queue"
 )
 
-// elevator states
+// Elevator states
 const (
 	Idle int = iota
 	Moving
 	Door_open
+	Stuck
 )
 
-// ---- moved to queue ----
-// order states
-const (
-	Inactive = int = iota
-	Added
-	Assigned
-	Ready
-	Active
-)
-
-// order state management will be fixed later
-//var order_state int
---------
-
-// declare variables
+// Declare variables
 var elev_state int
 var floor global.Floor_t
 var dir global.Motor_direction_t
 
-// make channels
+// Make channels
 type Channels struct {
-	// channels triggering events
+	// Channels triggering events
 	New_order chan bool
 	Floor_reached chan int
 	Door_close chan bool
 	
-	// channels setting values
+	// Channels setting values
 	Motor_dir chan global.Motor_direction_t
 	Floor_lamp chan global.Floor_t
 	Door_lamp chan int
 }
 
-// initial values
+// Initial values
 func Init(){
 	elev_state = Idle
 	dir = global.DIR_STOP
@@ -63,7 +54,7 @@ func Init(){
 	fmt.Println("FMS init done.")
 }
 
-// wait for signals -> run events
+// Wait for signals -> run events
 func run(channel Channels){
 	for{
 		select{
@@ -77,9 +68,9 @@ func run(channel Channels){
 	}
 }
 
-// event: new order
+// Event: new order
 func event_new_order(channel Channels){
-	fmt.Println("Event: new order.")
+	fmt.Println("Running event: new order.")
 
 	switch elev_state {
 	case Idle:
@@ -103,30 +94,37 @@ func event_new_order(channel Channels){
 	}
 }
 
-// event: floor reached
+// Event: floor reached
 func event_floor_reached(channel Channels, floor global.Floor_t){
-	fmt.Println("Event: floor reached.")
+	fmt.Println("Running event: floor reached.")
 	
-	// turn on floor lamp
+	// Turn on floor lamp
 	channel.Floor_lamp <- floor
 	
+	order := False
 	switch elev_state {
 	case Moving:
-		// check if order at this floor
-		// if yes:
-		//	dir = def.DIR_STOP
+		// Check if the elevator has a order at this floor
+		//order = ordermanager.Check_if_order_at_floor(floor global.Floor_t, elev global.Assigned_t)
+		// if order:
+		//	dir = global.DIR_STOP
 		//	channel.Motor_dir <- dir
-		// 	open door
+		// 	driver.Open_door()
 		// 	elev_state = door_open
-		// 	order_state = finished
-	default:
+		//      -- Change state of the order belonging to this elevetor and floor (master-task?)       
+		// 	--(order_state = finished)
+		//	-- for all buttons, set to finished:
+		//	queue.Update_order_state(button global.Button_t, floor global.Floor_t, state queue.Order_state, elev global.Assigned_t)
+		// 	Update_order_state_to_finished_whole_floor_all_elev(floor)
+		
+		default:
 		// if not valid state
 
 }
 
-// event: door close
+// Event: door close
 func event_door_close(channel Channels){
-	fmt.Println("Event: door close.")
+	fmt.Println("Running event: door close.")
 	
 	switch elev_state {
 	case Door_open:
@@ -151,4 +149,14 @@ func event_door_close(channel Channels){
 		
 	default:
 		// if not valid state
+	}
 }
+
+// master function? om master fikser dette så blir det oppdatert for alle
+func Update_order_state_to_finished_whole_floor_all_elev(floor global.Floor_t){
+	// for all buttons
+	// for all elev
+	queue.Update_order_state(button, floor, finished, elev)
+}
+		
+	
