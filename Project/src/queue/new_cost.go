@@ -10,14 +10,25 @@ order_floor := order_from_panel //getting the order from panel. Is this a number
 
 //Checking if an elevator is free and just waiting for an order. 
 //If thats the case, we should delegate the order to that elevator
-func elevator_is_idle(global_order_list, order) bool{ 
-	for i := 0; i = NUM_ORDERS; i++{
-		if global_order_list[i] != 0 {
+func elevator_is_idle(order_list [global.NUM_ORDERS]queue.Order) bool{ 
+	for i := 0; i < NUM_ORDERS; i++{
+		if order_list[i].Order_state != queue.Inactive {
 			return false
 		}
 	}
 	return true
 }
+
+func orders_in_list_cost(order_list [global.NUM_ORDERS]queue.Order)int{ 
+	cost := 0
+	for i := 0; i < NUM_ORDERS; i++{
+		if order_list[i].Order_state != queue.Inactive {
+			cost += 2
+		}
+	}
+	return cost
+}
+
 //If elevator is idle returns true do this
 global_order_list[4] = order //Element 4 er vel første eksterne element i lista
 
@@ -42,7 +53,7 @@ global_order_list[4] = order //Element 4 er vel første eksterne element i lista
 //}
 
 
-func determine direction(previous, destination_floor) Motor_direction_t {
+func determine_direction(previous_floor global.Floor_t, destination_floor global.Floor_t) global.Motor_direction_t {
 	if(previous_floor > destination_floor){
 		return DIR_DOWN
 	} else {
@@ -53,12 +64,12 @@ func determine direction(previous, destination_floor) Motor_direction_t {
 				
 //Calculates the cost based on the direction. Adds +3 for wrong dir and -1 for right dir
 //Must take in current floor, destination floor and orderd floor
-func direction_cost(direction) {
+func direction_cost(direction global.Motion_direction_t, destination_floor global.Floor_t, current_floor global.Floot_t) int {
 	direction_cost := 0
 	
 	switch direction{
 		case DIR_DOWN:
-		if (order_floor < current_floor) {
+		if (destination_floor < current_floor) {
 			//Elevator is going down, destination is lower than current floor 
 			direction cost -1
 		} 
@@ -82,13 +93,13 @@ func direction_cost(direction) {
 
 //Calculates the cost based on the distance between the elevator and the destination floor.
 //Adds +2 for each floor it passes
-func floor_cost() {
+func floor_cost(current_floor global.Floor_t, order_floor global.Floor_t) {
 	floor_cost := 0
 	
 	if (current_floor < order_floor) {
-		floor_cost = 2*(order_floor - curr_floor - 1)
+		floor_cost = 2*(order_floor - current_floor - 1)
 	} else {
-		floor_cost = (-2)*(order_floor - curr_floor + 1)
+		floor_cost = (-2)*(order_floor - current_floor + 1)
 	}
 	
 	return floor_cost
@@ -96,7 +107,7 @@ func floor_cost() {
 
 //Calculates the cost based on stops. Adds +2 for each time it stops
 //Should take in current floor, ordered floor and if a button is pressed
-func stop_cost() {
+func stop_cost(direction global.Motor_direction_t, previous_floor global.Floor_t, order_floor globabl.Floor_t) {
 	stop_cost := 0
 	//If the elevator is going down, but stops on the way down
 	if direction == DIR_DOWN {
