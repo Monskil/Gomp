@@ -33,19 +33,19 @@ func main() {
 
 	//Global_order_list [global.NUM_GLOBAL_ORDERS]queue.Order
 
-	newOrder := make(chan queue.Order, 10) //Er buffra til 10 for da får alle mulig ebestillinger plass
-	updatedOrder := make(chan queue.Order,10)
-	globalOrderList := make(chan [global.NUM_GLOBAL_ORDERS]queue.Order)
-	internalOrderList := make(chan [global.NUM_INTERNAL_ORDERS]queue.Order)
+	new_order_chan := make(chan queue.Order, 10) //Er buffra til 10 for da får alle mulig ebestillinger plass
+	updated_order_chan := make(chan queue.Order,10)
+	external_order_list_chan := make(chan [global.NUM_GLOBAL_ORDERS]queue.Order)
+	internal_order_list_chan := make(chan [global.NUM_INTERNAL_ORDERS]queue.Order)
 	//isMaster := make(chan bool)
 	//heQueue := make(chan [global.NUM_GLOBAL_ORDERS]queue.Order)
 	//heQueue <- global_order_list
 
-	go ordermanager.Detect_button_pressed(newOrder)
-	go queue.Handle_orders(newOrder,updatedOrder, globalOrderList, internalOrderList)
+	go ordermanager.Detect_button_pressed(new_order_chan)
+	go queue.Handle_orders(new_order_chan, updated_order_chan, external_order_list_chan, internal_order_list_chan)
 	go network.Network_info()
-	//go ordermanager.HandleNewGlobal(globalOrderList, internalOrderList)
-	go fsm.State_handler(updatedOrder, globalOrderList, internalOrderList)
+	//go ordermanager.HandleNewGlobal(external_order_list_chan, internal_order_list_chan)
+	go fsm.State_handler(updated_order_chan, external_order_list_chan, internal_order_list_chan)
 
 	for { /*
 			select {
