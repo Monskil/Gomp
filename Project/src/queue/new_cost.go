@@ -10,33 +10,36 @@ order_floor := order_from_panel //getting the order from panel. Is this a number
 
 //Checking if an elevator is free and just waiting for an order. 
 //If thats the case, we should delegate the order to that elevator
-func Check_if_free_elev(global_order_list, order) { 
+func elevator_is_idle(global_order_list, order) bool{ 
 	for i := 0; i = NUM_ORDERS; i++{
-		if global_order_list[i] = 0 {
-			global_order_list[4] = order //Element 4 er vel første eksterne element i lista
-		}	
+		if global_order_list[i] != 0 {
+			return false
+		}
 	}
+	return true
 }
+//If elevator is idle returns true do this
+global_order_list[4] = order //Element 4 er vel første eksterne element i lista
+
 
 //Simulates the elevators journey and calculates the cost
-func Calculate_cost(global_order_list, internal_order_list, order){
-	cost := 0
-	previous_floor = //Forrige gyldig etasje
-	for i := 0; i = NUM_ORDERS; i++ {
-		//Current floor skal være forrige etasje vi 
-		current_floor = internal_order_list.floor 
-		button = internal_order_list.button
-		direction = determine_direction()
+//func Calculate_cost(global_order_list, internal_order_list, order){
+//	cost := 0
+//	previous_floor = Forrige gyldig etasje
+//	current_floor = Etasjen/posisjonen heisen er i
+//	button = Hva som kommer inn fra knappen
+//	for i := 0; i = NUM_ORDERS; i++ {		
+//		
+//		direction = determine_direction()
 
-		//All cost functions
-		cost += direction_cost(direction,)
-		cost += stop_cost(direction,)
-		cost += floor_cost(direction,)
-		cost += valid_floor_cost()
-	}
+//		cost += direction_cost(direction,)
+//		cost += stop_cost(direction,)
+//		cost += floor_cost(direction,)
+//		cost += between_floor_cost()
+//	}
 	
-	return cost
-}
+//	return cost
+//}
 
 
 func determine direction(previous, destination_floor) Motor_direction_t {
@@ -55,7 +58,7 @@ func direction_cost(direction) {
 	
 	switch direction{
 		case DIR_DOWN:
-		if (order_floor < curr_floor) {
+		if (order_floor < current_floor) {
 			//Elevator is going down, destination is lower than current floor 
 			direction cost -1
 		} 
@@ -65,7 +68,7 @@ func direction_cost(direction) {
 		}
 		
 		case DIR_UP:
-		if (order_floor > curr_floor) {
+		if (order_floor > current_floor) {
 			//Elevator going up, destination is higher than current floor
 			direction cost -1
 		} else {
@@ -82,7 +85,7 @@ func direction_cost(direction) {
 func floor_cost() {
 	floor_cost := 0
 	
-	if (curr_floor < order_floor) {
+	if (current_floor < order_floor) {
 		floor_cost = 2*(order_floor - curr_floor - 1)
 	} else {
 		floor_cost = (-2)*(order_floor - curr_floor + 1)
@@ -128,6 +131,7 @@ func stop_cost() {
 	return stop_cost
 }
 
+//Calculates cost if the elevator starts in an invalid position. Adding 1 if so
 func between_floor_cost(){
 	between_floor_cost := 0
 	
