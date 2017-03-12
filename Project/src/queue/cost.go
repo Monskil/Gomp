@@ -17,13 +17,13 @@ func elevator_is_idle(order_list [global.NUM_ORDERS]queue.Order) bool{
 
 // Add 2 points for each order in list
 func order_cost(order_list [global.NUM_ORDERS]queue.Order)int{ 
-	cost := 0
+	order_cost := 0
 	for i := 0; i < NUM_ORDERS; i++{
 		if order_list[i].Order_state != queue.Inactive {
-			cost += 2
+			order_cost += 2
 		}
 	}
-	return cost
+	return order_cost
 }
 	
 // Add 3 points for wrong direction and -1 for right direction		
