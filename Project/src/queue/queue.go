@@ -1,10 +1,3 @@
-//Inactive: noone has ordered this
-//Active: The order has been detected by button owner
-//Assigned : master has assigned the order to someone, but it's not confirmed that someone noticed that they got it
-//Ready : verified that order is known at assigned elevator, waiting in line to be executed
-//Executing : this order is now being executed, i.e is the first in line
-//Finished : slave says the order is finished, master can delete it
-
 package queue
 
 import (
@@ -13,14 +6,15 @@ import (
   "fmt"
 )
 
-// order states
+//Order states
 const (
-  Inactive = iota
-  Active
-  Assigned
-  Ready
-  Executing
-  Finished
+  Inactive = iota //Noone has ordered this
+  Active					//The order has been detected by button owner
+  Assigned        //Master has assigned the order to someone, but it's not confirmed that someone noticed that they got it
+  Ready           //Verified that order is known at assigned elevator, waiting in line to be executed
+  Executing       //This order is now being executed, i.e is the first in line
+  Finished				//Slave says the order is finished, master can delete it
+
 )
 
 type Order struct {
@@ -45,7 +39,7 @@ func Handle_orders(new_order_chan chan Order, updated_order_chan chan Order, ext
     select {
     // -- Kan ikke lengre hete buttonPressed
     case button_pressed := <-new_order_chan:
-      fmt.Println("Added new button pressed")
+      fmt.Println("Adding new button pressed")
       add_order(button_pressed, external_order_list_chan, internal_order_list_chan)
       fmt.Println("Adding done")
 
@@ -64,9 +58,9 @@ func Handle_orders(new_order_chan chan Order, updated_order_chan chan Order, ext
   }
 }
 func Update_state(updated_order Order, external_order_list_chan chan [global.NUM_GLOBAL_ORDERS]Order, internal_order_list_chan chan [global.NUM_INTERNAL_ORDERS]Order) {
-  fmt.Println("updatet state before")
+  fmt.Println("Updates state before")
   fmt.Println("My update_order: ", updated_order)
-  if updated_order.Button == global.BUTTON_UP || updated_order.Button == global.BUTTON_DOWN {
+	if (updated_order.Button == global.BUTTON_UP || updated_order.Button == global.BUTTON_DOWN) {
     fmt.Println("guk")
     //var external_order_list [global.NUM_GLOBAL_ORDERS]Order
     //external_order_list = <-external_order_list_chan
@@ -108,7 +102,7 @@ func Add_new_external_order(newButton Order, external_order_list_chan chan [glob
       external_order_list[i] = newButton
       fmt.Println("New external order was added!")
       external_order_list_chan <- external_order_list
-      fmt.Println("pushed to external order chan")
+      fmt.Println("Pushed to external order chan")
       break
     }
     if external_order_list[i].Floor == new_order_floor && external_order_list[i].Button == new_order_button {
