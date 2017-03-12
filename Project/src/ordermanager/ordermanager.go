@@ -2,7 +2,7 @@ package ordermanager
 
 import (
 	"driver"
-	//"fmt"
+	"fmt"
 	"global"
 	"queue"
 	"time"
@@ -13,7 +13,7 @@ import (
 // -- check fsm
 // -- try making an "easy" version for the internal orders first
 
-func Detect_button_pressed(newButton chan queue.Order) {
+func Detect_button_pressed(newOrder chan queue.Order) {
 	var order queue.Order
 
 	for {
@@ -22,8 +22,9 @@ func Detect_button_pressed(newButton chan queue.Order) {
 			order.Button = global.BUTTON_UP
 			order.Floor = global.FLOOR_1
 			order.Order_state = queue.Active
+			fmt.Println(order.Order_state, queue.Active)
 			order.Assigned_to = global.ELEV_1
-			newButton <- order
+			newOrder <- order
 			time.Sleep(1 * time.Second)
 		}
 		if driver.Get_button_signal(global.BUTTON_UP, global.FLOOR_2) != 0 {
@@ -31,7 +32,7 @@ func Detect_button_pressed(newButton chan queue.Order) {
 			order.Floor = global.FLOOR_2
 			order.Order_state = queue.Active
 			order.Assigned_to = global.ELEV_1
-			newButton <- order
+			newOrder <- order
 
 			time.Sleep(1 * time.Second)
 
@@ -41,7 +42,7 @@ func Detect_button_pressed(newButton chan queue.Order) {
 			order.Floor = global.FLOOR_2
 			order.Order_state = queue.Active
 			order.Assigned_to = global.ELEV_1
-			newButton <- order
+			newOrder <- order
 			time.Sleep(1 * time.Second)
 		}
 		if driver.Get_button_signal(global.BUTTON_UP, global.FLOOR_3) != 0 {
@@ -49,7 +50,7 @@ func Detect_button_pressed(newButton chan queue.Order) {
 			order.Floor = global.FLOOR_3
 			order.Order_state = queue.Active
 			order.Assigned_to = global.ELEV_1
-			newButton <- order
+			newOrder <- order
 			time.Sleep(1 * time.Second)
 		}
 		if driver.Get_button_signal(global.BUTTON_DOWN, global.FLOOR_3) != 0 {
@@ -57,7 +58,7 @@ func Detect_button_pressed(newButton chan queue.Order) {
 			order.Floor = global.FLOOR_3
 			order.Order_state = queue.Active
 			order.Assigned_to = global.ELEV_1
-			newButton <- order
+			newOrder <- order
 			time.Sleep(1 * time.Second)
 		}
 		if driver.Get_button_signal(global.BUTTON_DOWN, global.FLOOR_4) != 0 {
@@ -65,7 +66,7 @@ func Detect_button_pressed(newButton chan queue.Order) {
 			order.Floor = global.FLOOR_4
 			order.Order_state = queue.Active
 			order.Assigned_to = global.ELEV_1
-			newButton <- order
+			newOrder <- order
 			time.Sleep(1 * time.Second)
 		}
 		if driver.Get_button_signal(global.BUTTON_COMMAND, global.FLOOR_1) != 0 {
@@ -73,7 +74,7 @@ func Detect_button_pressed(newButton chan queue.Order) {
 			order.Floor = global.FLOOR_1
 			order.Order_state = queue.Active
 			order.Assigned_to = global.ELEV_1
-			newButton <- order
+			newOrder <- order
 			time.Sleep(1 * time.Second)
 
 		}
@@ -82,7 +83,7 @@ func Detect_button_pressed(newButton chan queue.Order) {
 			order.Floor = global.FLOOR_2
 			order.Order_state = queue.Active
 			order.Assigned_to = global.ELEV_1
-			newButton <- order
+			newOrder <- order
 			time.Sleep(1 * time.Second)
 
 		}
@@ -91,7 +92,7 @@ func Detect_button_pressed(newButton chan queue.Order) {
 			order.Floor = global.FLOOR_3
 			order.Order_state = queue.Active
 			order.Assigned_to = global.ELEV_1
-			newButton <- order
+			newOrder <- order
 			time.Sleep(1 * time.Second)
 
 		}
@@ -100,7 +101,7 @@ func Detect_button_pressed(newButton chan queue.Order) {
 			order.Floor = global.FLOOR_4
 			order.Order_state = queue.Active
 			order.Assigned_to = global.ELEV_1
-			newButton <- order
+			newOrder <- order
 			time.Sleep(1 * time.Second)
 
 		}
