@@ -48,10 +48,10 @@ func Handle_orders(new_order_chan chan Order,updated_order_chan chan Order, glob
     case button_pressed := <-new_order_chan:
       add_order(button_pressed,global_order_list_chan, internal_order_list_chan)
 
-  case updated_order <- updated_order_chan:
-    if updated_order.Order_state == Finished{
-      delete_order()
-    }
+  case <- updated_order_chan:
+    //if updated_order.Order_state == Finished{
+      //delete_order()
+    //}
     
 
   }
@@ -77,11 +77,13 @@ func Add_new_internal_order(new_order Order, internal_order_list_chan chan [glob
   }
 }
 
-func Add_new_external_order(newButton chan Order, external_order_list_chan chan [global.NUM_GLOBAL_ORDERS]Order) {
+func Add_new_external_order(newButton Order, external_order_list_chan chan [global.NUM_GLOBAL_ORDERS]Order) {
       external_order_list := <-external_order_list_chan
+      new_order_floor := newButton.Floor
+      new_order_button := newButton.Button
       for i := 0; i < global.NUM_GLOBAL_ORDERS; i++ {
         if external_order_list[i].Order_state == Inactive {
-          external_order_list[i] = buttonPressed
+          external_order_list[i] = newButton
           fmt.Println("New order was added!")
           external_order_list_chan <- external_order_list
         }
@@ -91,12 +93,11 @@ func Add_new_external_order(newButton chan Order, external_order_list_chan chan 
       }
 
     }
-  }
-}
+  
 
-func add_order(new_order Order, external_order_list_chan chan [global.NUM_GLOBAL_ORDERS]Order, internal_order_list_chan chan [global.NUM_INTERNAL_ORDERS]Order)
-{
-  if new_order.Button == BUTTON_UP || new_order.Button == BUTTON_DOWN{
+
+func add_order(new_order  Order, external_order_list_chan chan [global.NUM_GLOBAL_ORDERS]Order, internal_order_list_chan chan [global.NUM_INTERNAL_ORDERS]Order){
+  if new_order.Button == global.BUTTON_UP || new_order.Button == global.BUTTON_DOWN{
     Add_new_external_order(new_order, external_order_list_chan)
   }else{
     Add_new_internal_order(new_order, internal_order_list_chan)
