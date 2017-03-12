@@ -1,25 +1,15 @@
-// The elevator has 3 states:
-// Idle: not moving, waiting for orders
-// Moving: moving, handling order
-// Door open: at a floor with the door open, finishing order
-// Stuck: if you've been moving for more than 5 seconds (have timer on moving) you're stuck, when reaching floor -> not stuck anymore
-//
-// We have 3 events:
-// New order: a new order is received
-// Floor reached: desired floor is reached
-// Door closed: the door goes from open to closed
-
 package fsm
 
 import (
-	"fmt"
-	"global"
-	"ordermanager"
-	"driver"
-	"queue"
+  "global"
+  "queue"
+  "driver"
+  "fmt"
 )
+/* Hva skal fsm gjøre?
+- Sjekke elev state og si hva den skal gjøre
+*/
 
-// Elevator states
 const (
 	Idle int = iota
 	Moving
@@ -27,136 +17,91 @@ const (
 	Stuck
 )
 
-// Declare variables
-var elev_state int
-var floor global.Floor_t
-var dir global.Motor_direction_t
 
-// Make channels
-type Channels struct {
-	// Channels triggering events
-	New_order chan bool
-	Floor_reached chan int
-	Door_close chan bool
-	
-	// Channels setting values
-	Motor_dir chan global.Motor_direction_t
-	Floor_lamp chan global.Floor_t
-	Door_lamp chan int
-}
-
-// Initial values
-func Init(){
-	elev_state = Idle
-	dir = global.DIR_STOP
-	floor = global.FLOOR_1
-
-	fmt.Println("FMS init done.")
-}
-
-// Wait for signals -> run events
-func run(channel Channels){
-	for{
-		select{
-		case <-channel.New_order:
-			event_new_order(channel)
-		case floor := <- channel.Floor_reached:
-			event_floor_reached(channel, floor)
-		case <- channel.Door_close:
-			event_door_close(channel)
-		}
-	}
-}
-
-// Event: new order
-func event_new_order(channel Channels){
-	fmt.Println("Running event: new order.")
-
-	switch elev_state {
-	case Idle:
-		// get direction of the next order
-		//dir = direction of the next order
-		// if you are at the correct floor:
-		//	open door
-		//	elev_state = door_open
-		//	order_state = finished
-		// else:
-		// 	channel.Motor_dir <- dir
-		//	elev_state = moving
-		//	order_state = active
-	case Door_open:
-		// if you are at the correct floor:
-		//	order_state = finished
-		
-		// should be add some seconds to the timer in open door?
-	default:
-		// if not valid state
-	}
-}
-
-// Event: floor reached
-func event_floor_reached(channel Channels, floor global.Floor_t){
-	fmt.Println("Running event: floor reached.")
-	
-	// Turn on floor lamp
-	channel.Floor_lamp <- floor
-	
-	order := False
-	switch elev_state {
-	case Moving:
-		// Check if the elevator has a order at this floor
-		//order = ordermanager.Check_if_order_at_floor(floor global.Floor_t, elev global.Assigned_t)
-		// if order:
-		//	dir = global.DIR_STOP
-		//	channel.Motor_dir <- dir
-		// 	driver.Open_door()
-		// 	elev_state = door_open
-		//      -- Change state of the order belonging to this elevetor and floor (master-task?)       
-		// 	--(order_state = finished)
-		//	-- for all buttons, set to finished:
-		//	queue.Update_order_state(button global.Button_t, floor global.Floor_t, state queue.Order_state, elev global.Assigned_t)
-		// 	Update_order_state_to_finished_whole_floor_all_elev(floor)
-		
-		default:
-		// if not valid state
-
-}
-
-// Event: door close
-func event_door_close(channel Channels){
-	fmt.Println("Running event: door close.")
-	
-	switch elev_state {
-	case Door_open:
-		// turn off door lamp
-		channel.Door_lamp <- false
-		
-		// check for next order:
-		
-		//dir = direction of the next order
-		
-		// set motor direction
-		// - hvor kommer dir fra?
-		channel.Motor_dir <- dir
-		
-		// set elevator state
-		if dir == global.DIR_STOP{
-			elev_state = Idle
-		} else {
+func State_handler(updated_order_chan chan queue.Order, global_order_list_chan chan [global.NUM_GLOBAL_ORDERS]queue.Order, internal_order_list_chan chan [global.NUM_INTERNAL_ORDERS]queue.Order ){
+	fmt.Println("Hello from state")
+	elev_state := Idle
+	current_order_chan := make(chan queue.Order)
+	var current_order queue.Order
+	for {
+		switch elev_state{
+		case Idle:
+			current_order = event_idle(global_order_list_chan, internal_order_list_chan, current_order_chan)
 			elev_state = Moving
-			// order_state = active
+		case Moving:
+			//check if stuck -> Stuck (with timer, if u have been moving more than 10 sec)
+			//check if reached floor (always turn on floor light when u r) -> check_if_order -> state = Door_open
+			event_moving(updated_order_chan, current_order)
+			elev_state = Door_open
+		case Door_open:
+			event_door_open(updated_order_chan, current_order)
+			elev_state = Idle
+		case Stuck:
+			//call for help = tell master you cant move
+			//check if your floor is changed, then you are not stuck anymore. Tell the master
 		}
-		
-	default:
-		// if not valid state
 	}
 }
 
-// master function? om master fikser dette så blir det oppdatert for alle
-func Update_order_state_to_finished_whole_floor_all_elev(floor global.Floor_t){
-	// for all buttons
-	// for all elev
-	queue.Update_order_state(button, floor, finished, elev)
+func event_idle(global_order_list_chan chan [global.NUM_GLOBAL_ORDERS]queue.Order, internal_order_list_chan chan [global.NUM_INTERNAL_ORDERS]queue.Order, current_order_chan chan queue.Order)queue.Order{
+	fmt.Println("Running event: Idle.")
+
+	var current_order queue.Order
+	// -- burde ta inn nåværende liste og ikke starte med en tom en
+	var internal_order_list  [global.NUM_INTERNAL_ORDERS]queue.Order
+	var global_order_list  [global.NUM_GLOBAL_ORDERS]queue.Order //hvis vi går inn i idle med full liste skjer det ingenting før ny ordre kommer
+
+	for{
+		for i := 0 ; i < global.NUM_INTERNAL_ORDERS ; i++ {
+			if internal_order_list[i].Order_state != queue.Inactive {
+				current_order = internal_order_list[i]
+				return current_order
+			}
+		}
+		for i := 0 ; i < global.NUM_GLOBAL_ORDERS ; i++ {
+			if global_order_list[i].Order_state != queue.Inactive {
+				current_order = internal_order_list[i]
+				return current_order
+			}
+		}
+
+		select{
+		case catch_internal_list :=<- internal_order_list_chan:
+			internal_order_list = catch_internal_list
+		case  catch_global_list :=<- global_order_list_chan:
+			global_order_list = catch_global_list	
+		}
+	}
 }
-		
-	
+
+
+func event_moving(updated_order_chan chan queue.Order, current_order queue.Order){
+	fmt.Println("Running event: Moving.")
+
+	current_order.Order_state = queue.Executing
+	updated_order_chan <- current_order
+	driver.Elevator_to_floor(current_order.Floor)
+
+	// -- Her må det lages noe som gjør at den kan hente folk på veien
+	// ---- dvs sjekke hver gang den kommer til en etasje om den har en bestilling der
+
+	/*
+	for{
+		if driver.Get_floor_sensor_signal() != -1 {
+			this_floor = driver.Get_floor_sensor_signal_floor_t()
+			driver.Set_floor_indicator_lamp(this_floor)
+			//if current_order.Floor == this_floor { //Endre dette til is there an order in this floor stuff
+			//	break
+			}
+
+
+		}
+	*/
+}
+
+func event_door_open(updated_order_chan chan queue.Order, current_order queue.Order){
+	fmt.Println("Running event: Door open.")
+	driver.Open_door()
+	current_order.Order_state = queue.Finished
+	updated_order_chan <- current_order
+}
