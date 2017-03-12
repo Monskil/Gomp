@@ -3,15 +3,16 @@ package main
 import (
 	"driver"
 	//fmt"
-	//global"
+	"global"
 	"queue"
-	//"network"
+	"network"
 	//"flag"
 	//"network/bcast"
 	//"network/localip"
 	//"network/peers"
 	//"time"
 	"ordermanager"
+	"fsm"
 )
 
 /*
@@ -32,12 +33,19 @@ func main() {
 
 	//Global_order_list [global.NUM_GLOBAL_ORDERS]queue.Order
 
-	newButton := make(chan queue.Order, 10) //Er buffra til 10 for da får alle mulig ebestillinger plass
+	newOrder := make(chan queue.Order, 10) //Er buffra til 10 for da får alle mulig ebestillinger plass
+	updatedOrder := make(chan queue.Order,10)
+	globalOrderList := make(chan [global.NUM_GLOBAL_ORDERS]queue.Order)
+	internalOrderList := make(chan [global.NUM_INTERNAL_ORDERS]queue.Order)
+	//isMaster := make(chan bool)
 	//heQueue := make(chan [global.NUM_GLOBAL_ORDERS]queue.Order)
 	//heQueue <- global_order_list
 
-	go ordermanager.Detect_button_pressed(newButton)
-	go queue.Handle_button_pressed(newButton)
+	go ordermanager.Detect_button_pressed(newOrder)
+	go queue.Handle_orders(newOrder,updatedOrder, globalOrderList, internalOrderList)
+	go network.Network_info()
+	//go ordermanager.HandleNewGlobal(globalOrderList, internalOrderList)
+	go fsm.State_handler(updatedOrder, globalOrderList, internalOrderList)
 
 	for { /*
 			select {
