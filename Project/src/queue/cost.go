@@ -72,7 +72,7 @@ func Calculate_cost(order_list [global.NUM_ORDERS]queue.Order, direction global.
   
   if elevator_is_idle(order_list [global.NUM_ORDERS]queue.Order){
     cost = -2
-    return 
+    return cost
   } else {
     cost += order_cost(order_list)
     cost += direction_cost(direction, destination_floor, current_floor)
