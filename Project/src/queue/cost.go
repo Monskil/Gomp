@@ -67,7 +67,7 @@ func floor_cost(current_floor global.Floor_t, order_floor global.Floor_t) {
 	return floor_cost
 }
 
-func Calculate_cost(order_list [global.NUM_ORDERS]queue.Order, direction global.Motion_direction_t, destination_floor global.Floor_t, urrent_floor global.Floot_t)int{
+func Calculate_cost(order_list [global.NUM_ORDERS]queue.Order, direction global.Motion_direction_t, destination_floor global.Floor_t, current_floor global.Floot_t)int{
   cost := 0
   
   if elevator_is_idle(order_list [global.NUM_ORDERS]queue.Order){
