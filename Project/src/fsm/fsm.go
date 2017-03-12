@@ -136,10 +136,19 @@ func elevator_to_floor(floor global.Floor_t, order_list [global.NUM_ORDERS]queue
 	}
 
 	// Go to desired floor
+	fmt.Println(current_floor_int, floor_int)
 	if current_floor_int < floor_int {
 		fmt.Println("Going up.")
+		driver.Set_motor_direction(global.DIR_UP)
+
+		/* Because of the Floor_t struct the Check_if_order_in_floor function thinks
+		that an order with no floor = order with floor 1... If we start the elev in 
+		floor 1 it compares this and checks if we have orders here, and it thinks all
+		empty orders are orders for floor 1 -> and it opens the door.
+		If we have a delay it will move from floor 1 before this becomes a problem*/
+		time.Sleep(100*time.Millisecond)
+
 		for driver.Get_floor_sensor_signal() != floor_int {
-			driver.Set_motor_direction(global.DIR_UP)
 			current_floor = driver.Floor_int_to_floor_t(driver.Get_floor_sensor_signal())
 			
 			// When we arrive at any floor, check for order
@@ -148,10 +157,13 @@ func elevator_to_floor(floor global.Floor_t, order_list [global.NUM_ORDERS]queue
 				time.Sleep(10*time.Millisecond)
 			}
 		}
+
 	} else if current_floor_int > floor_int {
 		fmt.Println("Going down.")
+		driver.Set_motor_direction(global.DIR_DOWN)
+		time.Sleep(100*time.Millisecond)
+
 		for driver.Get_floor_sensor_signal() != floor_int {
-			driver.Set_motor_direction(global.DIR_DOWN)
 			current_floor = driver.Floor_int_to_floor_t(driver.Get_floor_sensor_signal())
 			
 			// When we arrive at any floor, check for order
