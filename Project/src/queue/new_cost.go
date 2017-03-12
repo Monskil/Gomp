@@ -21,8 +21,9 @@ func Check_if_free_elev(global_order_list, order) {
 //Simulates the elevators journey and calculates the cost
 func Calculate_cost(global_order_list, internal_order_list, order){
 	cost := 0
-
+	previous_floor = //Forrige gyldig etasje
 	for i := 0; i = NUM_ORDERS; i++ {
+		//Current floor skal være forrige etasje vi 
 		current_floor = internal_order_list.floor 
 		button = internal_order_list.button
 		direction = determine_direction()
@@ -31,14 +32,15 @@ func Calculate_cost(global_order_list, internal_order_list, order){
 		cost += direction_cost(direction,)
 		cost += stop_cost(direction,)
 		cost += floor_cost(direction,)
+		cost += valid_floor_cost()
 	}
 	
 	return cost
 }
 
 
-func determine direction(curr_floor, destination_floor) Motor_direction_t {
-	if(curr_floor > destination_floor){
+func determine direction(previous, destination_floor) Motor_direction_t {
+	if(previous_floor > destination_floor){
 		return DIR_DOWN
 	} else {
 		return DIR_UP
@@ -79,11 +81,13 @@ func direction_cost(direction) {
 //Adds +2 for each floor it passes
 func floor_cost() {
 	floor_cost := 0
+	
 	if (curr_floor < order_floor) {
 		floor_cost = 2*(order_floor - curr_floor - 1)
 	} else {
 		floor_cost = (-2)*(order_floor - curr_floor + 1)
 	}
+	
 	return floor_cost
 }
 
@@ -94,39 +98,41 @@ func stop_cost() {
 	//If the elevator is going down, but stops on the way down
 	if direction == DIR_DOWN {
 		switch {
-			case ((curr_floor - order_floor) == 3 && (button == BUTTON_COMMAND2 || button == BUTTON_DOWN3): 
+			case ( (previous_floor - order_floor) == 3 && (button == BUTTON_COMMAND3 || button == BUTTON_DOWN3): 
 				stop_cost += 2
 				fallthrough	
-			case ( (curr_floor - order_floor) == 3) && (button == BUTTON_COMMAND3):
+			case ( (previous_floor - order_floor) == 3) && (button == BUTTON_COMMAND2 || button == BUTTON_DOWN2):
+				stop_cost += 2
+			      	fallthrough
+			case ( (previous_floor - order_floor) == 2) && (button == BUTTON_COMMAND2 || button == BUTTON_DOWN2):
 				stop_cost += 2
 				fallthrough
-			case ( (curr_floor - order_floor) == 2) && (button == BUTTON_COMMAND2):
+			case ( (previous_floor - order_floor) == 2) && (button == BUTTON_COMMAND3 || button == BUTTON_DOWN3):
 				stop_cost += 2
-				fallthrough
-			case ( (curr_floor - order_floor) == 2) && (button == BUTTON_COMMAND3):
-				stop_cost += 2
+			      
 		} else if direction == DIR_UP { //If elevator is going up, but stops on the way up
 		switch {
-			case ( (curr_floor - order_floor) == -3) && (button == BUTTON_COMMAND2):
+			case ( (previous_floor - order_floor) == -3) && (button == BUTTON_COMMAND2 || button == BUTTON_UP2):
 				stop_cost += 2
 				fallthrough
-			case ( (curr_floor - order_floor) == -3) && (button == BUTTON_COMMAND3):
+			case ( (previous_floor - order_floor) == -3) && (button == BUTTON_COMMAND3 || button == BUTTON_UP3):
 				stop_cost += 2
 				fallthrough
-			case ( (curr_floor - order_floor) == -2) && (button == BUTTON_COMMAND2):
+			case ( (previous_floor - order_floor) == -2) && (button == BUTTON_COMMAND2 || button == BUTTON_UP2):
 				stop_cost += 2
 				fallthrough
-			case ( (curr_floor - order_floor) == -2) && (button == BUTTON_COMMAND3):
+			case ( (previous_floor - order_floor) == -2) && (button == BUTTON_COMMAND3 || button == BUTTON_UP3):
 				stop_cost += 2
 	}
 		
 	return stop_cost
 }
 
-func valid_floor_cost(){
-	valid_floor_cost := 0
-	if (curr_floor = -1){
-		valid_floor_cost += 1
-		return valid_floor_cost
+func between_floor_cost(){
+	between_floor_cost := 0
+	
+	if (curr_floor == -1){
+		between_floor_cost = 1
+		return between_floor_cost
 	}
 }
