@@ -1,4 +1,3 @@
-
 //Inactive: noone has ordered this
 //Active: The order has been detected by button owner
 //Assigned : master has assigned the order to someone, but it's not confirmed that someone noticed that they got it
@@ -9,151 +8,189 @@
 package queue
 
 import (
-  "global"
-  //"driver"
-  "fmt"
+	"global"
+	//"driver"
+	"fmt"
 )
 
 // order states
 const (
-  Inactive = iota
-  Active
-  Assigned
-  Ready
-  Executing
-  Finished
+	Inactive = iota
+	Active
+	Assigned
+	Ready
+	Executing
+	Finished
 )
 
 type Order struct {
-  Button      global.Button_t
-  Floor       global.Floor_t
-  Order_state int
-  Assigned_to global.Assigned_t
+	Button      global.Button_t
+	Floor       global.Floor_t
+	Order_state int
+	Assigned_to global.Assigned_t
 }
 
 type Elev_info struct {
-  Elev_ip         string
-  Elev_last_floor global.Floor_t
-  Elev_dir        global.Motor_direction_t
-  Elev_state      int
+	Elev_ip         string
+	Elev_last_floor global.Floor_t
+	Elev_dir        global.Motor_direction_t
+	Elev_state      int
 }
 
-var global_order_list [global.NUM_GLOBAL_ORDERS]Order
+var external_order_list [global.NUM_GLOBAL_ORDERS]Order
 var internal_order_list [global.NUM_INTERNAL_ORDERS]Order
 
-func Handle_orders(new_order_chan chan Order,updated_order_chan chan Order, global_order_list_chan chan [global.NUM_GLOBAL_ORDERS]Order, internal_order_list_chan chan [global.NUM_INTERNAL_ORDERS]Order) {
-  for {
-    select {
-      // -- Kan ikke lengre hete buttonPressed
-    case button_pressed := <-new_order_chan:
-      add_order(button_pressed,global_order_list_chan, internal_order_list_chan)
+func Handle_orders(new_order_chan chan Order, updated_order_chan chan Order, external_order_list_chan chan [global.NUM_GLOBAL_ORDERS]Order, internal_order_list_chan chan [global.NUM_INTERNAL_ORDERS]Order) {
+	for {
+		select {
+		// -- Kan ikke lengre hete buttonPressed
+		case button_pressed := <-new_order_chan:
+			add_order(button_pressed, external_order_list_chan, internal_order_list_chan)
 
-  case <- updated_order_chan:
-    //if updated_order.Order_state == Finished{
-      //delete_order()
-    //}
-    
+		case catch_updated_order := <-updated_order_chan:
+			fmt.Println("handle orders catch up")
+			updated_order := catch_updated_order
+			Update_state(updated_order, external_order_list_chan, internal_order_list_chan)
+			if updated_order.Order_state == Finished {
+				Delete_order(updated_order, internal_order_list_chan, external_order_list_chan)
+			}
+			//if updated_order.Order_state == Finished{
+			//Delete_internal_order(updated_order, internal_order_list_chan)
+			//}
 
-  }
-  }
+		}
+	}
+}
+func Update_state(updated_order Order, external_order_list_chan chan [global.NUM_GLOBAL_ORDERS]Order, internal_order_list_chan chan [global.NUM_INTERNAL_ORDERS]Order) {
+	fmt.Println("updatet state before")
+	if updated_order.Button == global.BUTTON_UP || updated_order.Button == global.BUTTON_DOWN {
+		external_order_list := <-external_order_list_chan
+		external_order_list[1].Order_state = updated_order.Order_state
+		external_order_list_chan <- external_order_list
+	} else {
+		internal_order_list := <-internal_order_list_chan
+		internal_order_list[1].Order_state = updated_order.Order_state
+		//internal_order_list_chan <- internal_order_list
+
+	}
+	fmt.Println("Updated the state")
 }
 
-func Add_new_internal_order(new_order Order, internal_order_list_chan chan [global.NUM_INTERNAL_ORDERS]Order)  {
-  // add new order in the internal list, if it's not already there
-  internal_order_list := <- internal_order_list_chan
-  new_order_floor := new_order.Floor
+func Add_new_internal_order(new_order Order, internal_order_list_chan chan [global.NUM_INTERNAL_ORDERS]Order) {
+	new_order_floor := new_order.Floor
 
+	for i := 0; i < global.NUM_INTERNAL_ORDERS; i++ {
+		if internal_order_list[i].Order_state == Inactive {
+			internal_order_list[i] = new_order
+			fmt.Println("New internal order was added!")
+			internal_order_list_chan <- internal_order_list
+			break
+		}
+		if internal_order_list[i].Floor == new_order_floor {
+			fmt.Println("The order is already in the internal order list.", internal_order_list[i])
+			break
 
-  for i := 0; i < global.NUM_INTERNAL_ORDERS; i++ {
-    if internal_order_list[i].Order_state == Inactive {
-      internal_order_list[i] = new_order
-      fmt.Println("New order was added!")
-      internal_order_list_chan <- internal_order_list
-    }
-    if internal_order_list[i].Floor == new_order_floor {
-      fmt.Println("The order is already in the internal order list.")
-      
-    }
-  }
+		}
+	}
 }
 
 func Add_new_external_order(newButton Order, external_order_list_chan chan [global.NUM_GLOBAL_ORDERS]Order) {
-      external_order_list := <-external_order_list_chan
-      new_order_floor := newButton.Floor
-      new_order_button := newButton.Button
-      for i := 0; i < global.NUM_GLOBAL_ORDERS; i++ {
-        if external_order_list[i].Order_state == Inactive {
-          external_order_list[i] = newButton
-          fmt.Println("New order was added!")
-          external_order_list_chan <- external_order_list
-        }
-        if external_order_list[i].Floor == new_order_floor && external_order_list[i].Button == new_order_button {
-          fmt.Println("The order is already in the global order list.")
-        }
-      }
-
-    }
-  
-
-
-func add_order(new_order  Order, external_order_list_chan chan [global.NUM_GLOBAL_ORDERS]Order, internal_order_list_chan chan [global.NUM_INTERNAL_ORDERS]Order){
-  if new_order.Button == global.BUTTON_UP || new_order.Button == global.BUTTON_DOWN{
-    Add_new_external_order(new_order, external_order_list_chan)
-  }else{
-    Add_new_internal_order(new_order, internal_order_list_chan)
-  }
+	new_order_floor := newButton.Floor
+	new_order_button := newButton.Button
+	for i := 0; i < global.NUM_GLOBAL_ORDERS; i++ {
+		if external_order_list[i].Order_state == Inactive {
+			external_order_list[i] = newButton
+			fmt.Println("New external order was added!")
+			external_order_list_chan <- external_order_list
+			break
+		}
+		if external_order_list[i].Floor == new_order_floor && external_order_list[i].Button == new_order_button {
+			fmt.Println("The order is already in the global order list.", external_order_list[i])
+			break
+		}
+	}
 
 }
 
+func add_order(new_order Order, external_order_list_chan chan [global.NUM_GLOBAL_ORDERS]Order, internal_order_list_chan chan [global.NUM_INTERNAL_ORDERS]Order) {
+	fmt.Println("Inside add_order funccd..")
 
-//func delete_internal_order(){
-  //if a state is set to finished, it should be deleted and the respective list must be updated
-//}
-/*
-func Delete_internal_order(internal_order_list [global.NUM_INTERNAL_ORDERS]Order) [global.NUM_INTERNAL_ORDERS]Order {
-  // delete all finished orders in the internal list by moving all the "later" orders one step forward
-  // make the last element in the list an "empty" order
-  clean_order := Make_new_order(global.BUTTON_UP, global.FLOOR_1, Inactive, global.NONE)
+	if new_order.Button == global.BUTTON_UP || new_order.Button == global.BUTTON_DOWN {
+		fmt.Println("Gikk inn i if'en")
+		Add_new_external_order(new_order, external_order_list_chan)
+	} else {
+		Add_new_internal_order(new_order, internal_order_list_chan)
+	}
 
-  for i := 0; i < global.NUM_INTERNAL_ORDERS; i++ {
-    if internal_order_list[i].Order_state == Finished {
-      fmt.Println("An internal order is marked finished.")
-      for j := i; j < global.NUM_INTERNAL_ORDERS; j++ {
-        if j < global.NUM_INTERNAL_ORDERS-1 {
-          fmt.Println("Moving order.")
-          internal_order_list[j] = internal_order_list[j+1]
-        } else if j == global.NUM_INTERNAL_ORDERS-1 {
-          fmt.Println("Adding last clean order.")
-          internal_order_list[j] = clean_order
-        }
-      }
-    }
-  }
-  return internal_order_list
 }
 
-func Delete_global_order(global_order_list [global.NUM_GLOBAL_ORDERS]Order) [global.NUM_GLOBAL_ORDERS]Order {
-  // delete all finished orders in the global list by moving all the "later" orders one step forward
-  // make the last element in the list an "empty" order
-  clean_order := Make_new_order(global.BUTTON_UP, global.FLOOR_1, Inactive, global.NONE)
-
-  for i := 0; i < global.NUM_GLOBAL_ORDERS; i++ {
-    if global_order_list[i].Order_state == Finished {
-      fmt.Println("A global order is marked finished.")
-      for j := i; j < global.NUM_ORDERS; j++ {
-        if j < global.NUM_GLOBAL_ORDERS-1 {
-          fmt.Println("Moving order.")
-          global_order_list[j] = global_order_list[j+1]
-        } else if j == global.NUM_GLOBAL_ORDERS-1 {
-          fmt.Println("Adding last clean order.")
-          global_order_list[j] = clean_order
-        }
-      }
-    }
-  }
-  return global_order_list
+func Delete_order(updated_order Order, internal_order_list_chan chan [global.NUM_INTERNAL_ORDERS]Order, global_order_list_chan chan [global.NUM_GLOBAL_ORDERS]Order) {
+	fmt.Println("in delete_order func")
+	if updated_order.Button == global.BUTTON_UP || updated_order.Button == global.BUTTON_DOWN {
+		fmt.Println("Det er en ekstern ordre som skal slettes")
+		Delete_external_order(updated_order, global_order_list_chan)
+	} else {
+		fmt.Println("Det er en intern ordre som skal slettes")
+		Delete_internal_order(updated_order, internal_order_list_chan)
+	}
 }
-*/
+
+func Delete_internal_order(updated_order Order, internal_order_list_chan chan [global.NUM_INTERNAL_ORDERS]Order) {
+	// delete all finished orders in the internal list by moving all the "later" orders one step forward
+	// make the last element in the list an "empty" order
+	//clean_order := Make_new_order(global.BUTTON_UP, global.FLOOR_1, Inactive, global.NONE)
+	var clean_order Order
+	clean_order.Button = updated_order.Button
+	clean_order.Floor = updated_order.Floor
+	clean_order.Order_state = Inactive
+	clean_order.Assigned_to = global.NONE
+	internal_order_list := <-internal_order_list_chan
+
+	for i := 0; i < global.NUM_INTERNAL_ORDERS; i++ {
+		fmt.Println("in the loop", internal_order_list[i].Order_state, Finished)
+		if internal_order_list[i].Order_state == Finished {
+			fmt.Println("An internal order is marked finished.")
+			for j := i; j < global.NUM_INTERNAL_ORDERS; j++ {
+				if j < global.NUM_INTERNAL_ORDERS-1 {
+					fmt.Println("Moving order.")
+					internal_order_list[j] = internal_order_list[j+1]
+				} else if j == global.NUM_INTERNAL_ORDERS-1 {
+					fmt.Println("Adding last clean order.")
+					internal_order_list[j] = clean_order
+				}
+			}
+		}
+	}
+	fmt.Println("almost finished")
+	internal_order_list_chan <- internal_order_list
+}
+
+func Delete_external_order(updated_order Order, external_order_list_chan chan [global.NUM_GLOBAL_ORDERS]Order) {
+	// delete all finished orders in the global list by moving all the "later" orders one step forward
+	// make the last element in the list an "empty" order
+	//clean_order := Make_new_order(global.BUTTON_UP, global.FLOOR_1, Inactive, global.NONE)
+	var clean_order Order
+	clean_order.Button = updated_order.Button
+	clean_order.Floor = updated_order.Floor
+	clean_order.Order_state = Inactive
+	clean_order.Assigned_to = global.NONE
+
+	for i := 0; i < global.NUM_GLOBAL_ORDERS; i++ {
+		if external_order_list[i].Order_state == Finished {
+			fmt.Println("A global order is marked finished.")
+			for j := i; j < global.NUM_ORDERS; j++ {
+				if j < global.NUM_GLOBAL_ORDERS-1 {
+					fmt.Println("Moving order.")
+					external_order_list[j] = external_order_list[j+1]
+				} else if j == global.NUM_GLOBAL_ORDERS-1 {
+					fmt.Println("Adding last clean order.")
+					external_order_list[j] = clean_order
+				}
+			}
+		}
+	}
+	external_order_list_chan <- external_order_list
+}
 
 /*
 func Make_my_order_list(internal_order_list [global.NUM_GLOBAL_ORDERS]Order, global_order_list [global.NUM_GLOBAL_ORDERS]Order) [global.NUM_ORDERS]Order {
@@ -186,10 +223,8 @@ func Make_new_order(button global.Button_t, floor global.Floor_t, order_state in
 
 */
 
-
-
 /*
-*/
+ */
 
 /*
 func Add_new_global_order(new_order Order, global_order_list [global.NUM_GLOBAL_ORDERS]Order) [global.NUM_GLOBAL_ORDERS]Order {
@@ -253,46 +288,42 @@ func Init_queue() {
 }
 */
 
-
-
-
-
 /* -------------------------------------------
-      fmt.Println("detekterer et knappetrykk: ", button_pressed)
-      new_order_floor := button_pressed.Floor
-      new_order_button := button_pressed.Button
+   fmt.Println("detekterer et knappetrykk: ", button_pressed)
+   new_order_floor := button_pressed.Floor
+   new_order_button := button_pressed.Button
 
-      if button_pressed.Button == global.BUTTON_COMMAND {
-        for i := 0; i < global.NUM_INTERNAL_ORDERS; i++ {
+   if button_pressed.Button == global.BUTTON_COMMAND {
+     for i := 0; i < global.NUM_INTERNAL_ORDERS; i++ {
 
-        if internal_order_list[i].Order_state == Inactive {
-          internal_order_list[i] = button_pressed
-          fmt.Println("New internal order was added!")
-          fmt.Println(internal_order_list)
-          internal_order_list_chan <- internal_order_list 
-          break
-        }
-        if internal_order_list[i].Floor == new_order_floor && internal_order_list[i].Button == new_order_button {
-          fmt.Println("The order is already in the internal order list.")
-          break
-        }
-        }
-      }
-      
-      if (button_pressed.Button == global.BUTTON_UP || button_pressed.Button == global.BUTTON_DOWN){
-      for i := 0; i < global.NUM_GLOBAL_ORDERS; i++ {
+     if internal_order_list[i].Order_state == Inactive {
+       internal_order_list[i] = button_pressed
+       fmt.Println("New internal order was added!")
+       fmt.Println(internal_order_list)
+       internal_order_list_chan <- internal_order_list
+       break
+     }
+     if internal_order_list[i].Floor == new_order_floor && internal_order_list[i].Button == new_order_button {
+       fmt.Println("The order is already in the internal order list.")
+       break
+     }
+     }
+   }
 
-        if global_order_list[i].Order_state == Inactive {
-          global_order_list[i] = button_pressed
-          fmt.Println("New external order was added!")
-          fmt.Println(global_order_list)
-          global_order_list_chan <- global_order_list 
-          break
-        }
-        if global_order_list[i].Floor == new_order_floor && global_order_list[i].Button == new_order_button {
-          fmt.Println("The order is already in the global order list.")
-          fmt.Println(global_order_list)
-          break
-        }
-      }
-    } -----------------------------------------------*/
+   if (button_pressed.Button == global.BUTTON_UP || button_pressed.Button == global.BUTTON_DOWN){
+   for i := 0; i < global.NUM_GLOBAL_ORDERS; i++ {
+
+     if global_order_list[i].Order_state == Inactive {
+       global_order_list[i] = button_pressed
+       fmt.Println("New external order was added!")
+       fmt.Println(global_order_list)
+       global_order_list_chan <- global_order_list
+       break
+     }
+     if global_order_list[i].Floor == new_order_floor && global_order_list[i].Button == new_order_button {
+       fmt.Println("The order is already in the global order list.")
+       fmt.Println(global_order_list)
+       break
+     }
+   }
+ } -----------------------------------------------*/
