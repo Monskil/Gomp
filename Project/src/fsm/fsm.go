@@ -51,6 +51,8 @@ func event_idle(global_order_list_chan chan [global.NUM_GLOBAL_ORDERS]queue.Orde
 	// -- burde ta inn nåværende liste og ikke starte med en tom en
 	var internal_order_list  [global.NUM_INTERNAL_ORDERS]queue.Order
 	var global_order_list  [global.NUM_GLOBAL_ORDERS]queue.Order //hvis vi går inn i idle med full liste skjer det ingenting før ny ordre kommer
+	
+	// Check if there is an order in one of the lists
 	for{
 		for i := 0 ; i < global.NUM_INTERNAL_ORDERS ; i++ {
 			if internal_order_list[i].Order_state != queue.Inactive {
@@ -64,7 +66,8 @@ func event_idle(global_order_list_chan chan [global.NUM_GLOBAL_ORDERS]queue.Orde
 				return current_order
 			}
 		}
-
+		
+		// Wait until some order is added
 		select{
 		case catch_internal_list :=<- internal_order_list_chan:
 			internal_order_list = catch_internal_list
@@ -82,34 +85,23 @@ func event_moving(updated_order_chan chan queue.Order, current_order queue.Order
 	var order_list [global.NUM_ORDERS]queue.Order
 	order_list[2].Floor = global.FLOOR_2
 	fmt.Println("My order list is: ", order_list)
-
+	
+	// Set order state to executing
 	current_order.Order_state = queue.Executing
 	updated_order_chan <- current_order
-	//driver.Elevator_to_floor_direct(current_order.Floor)
+	
+	// Go to floor
 	floor := current_order.Floor
 	elevator_to_floor(floor, order_list, updated_order_chan, current_order)
-
-	// -- Her må det lages noe som gjør at den kan hente folk på veien
-	// ---- dvs sjekke hver gang den kommer til en etasje om den har en bestilling der
-
-	/*
-	for{
-		if driver.Get_floor_sensor_signal() != -1 {
-			this_floor = driver.Get_floor_sensor_signal_floor_t()
-			driver.Set_floor_indicator_lamp(this_floor)
-			//if current_order.Floor == this_floor { //Endre dette til is there an order in this floor stuff
-			//	break
-			}
-
-
-		}
-	*/
 }
 
 func event_door_open(updated_order_chan chan queue.Order, current_order queue.Order){
 	fmt.Println("Running event: Door open.")
+	
+	// Open door
 	driver.Open_door()
-	fmt.Println(driver.Get_floor_sensor_signal())
+	
+	// Set order state to finished
 	current_order.Order_state = queue.Finished
 	updated_order_chan <- current_order
 }
@@ -120,7 +112,7 @@ func elevator_to_floor(floor global.Floor_t, order_list [global.NUM_ORDERS]queue
 
 	floor_int := driver.Floor_t_to_floor_int(floor)
 
-	// If the elevator is between two floors
+	// Check if the elevator is between two floors
 	timer := time.NewTimer(3 * time.Second)
 	timeout := false
 	go func() {
@@ -141,17 +133,10 @@ func elevator_to_floor(floor global.Floor_t, order_list [global.NUM_ORDERS]queue
 		fmt.Println("Going up.")
 		driver.Set_motor_direction(global.DIR_UP)
 
-		/* Because of the Floor_t struct the Check_if_order_in_floor function thinks
-		that an order with no floor = order with floor 1... If we start the elev in 
-		floor 1 it compares this and checks if we have orders here, and it thinks all
-		empty orders are orders for floor 1 -> and it opens the door.
-		If we have a delay it will move from floor 1 before this becomes a problem*/
-		time.Sleep(100*time.Millisecond)
-
 		for driver.Get_floor_sensor_signal() != floor_int {
 			current_floor = driver.Floor_int_to_floor_t(driver.Get_floor_sensor_signal())
 			
-			// When we arrive at any floor, check for order
+			// When arriving at any floor, check for order
 			if driver.Get_floor_sensor_signal() != -1 {
 				pick_up_order_on_the_way(current_floor, order_list, updated_order_chan, current_order)
 				time.Sleep(10*time.Millisecond)
@@ -179,9 +164,18 @@ func elevator_to_floor(floor global.Floor_t, order_list [global.NUM_ORDERS]queue
 
 func pick_up_order_on_the_way(floor global.Floor_t, order_list [global.NUM_ORDERS]queue.Order, updated_order_chan chan queue.Order, current_order queue.Order){
 	// If the elevator has an order in this floor, stop and take this order
-	order_in_floor := queue.Check_if_order_in_floor(floor, order_list)
+	order_in_floor := check_if_order_in_floor(floor, order_list)
 	if order_in_floor {
 		driver.Set_motor_direction(global.DIR_STOP)
 		event_door_open(updated_order_chan, current_order)
 	}
+}
+
+func check_if_order_in_floor(floor global.Floor_t, order_list order_list [global.NUM_ORDERS]queue.Order)bool{
+	for i := 0; i < global.NUM_ORDERS; i++ {
+		if order_list[i].Floor == floor && order_list[i].Order_state == queue.Inactive {
+			return true
+		}
+	}
+	return false
 }
