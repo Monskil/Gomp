@@ -84,6 +84,23 @@ func Get_floor_sensor_signal() int {
 	}
 }
 
+func Get_floor_sensor_signal_floor_t() (global.Floor_t){
+	if Get_floor_sensor_signal() == 1{
+		return global.FLOOR_1
+	}
+	if Get_floor_sensor_signal() == 2{
+		return global.FLOOR_2
+	}
+	if Get_floor_sensor_signal() == 3{
+		return global.FLOOR_3
+	}
+	if Get_floor_sensor_signal() == 4{
+		return global.FLOOR_4
+	} else {
+		return global.FLOOR_1
+	}
+}
+
 func Set_motor_direction(dir global.Motor_direction_t) {
 	if dir == global.DIR_STOP {
 		Io_write_analog(MOTOR, 0)
@@ -101,7 +118,7 @@ func Get_button_signal(button global.Button_t, floor global.Floor_t) int {
 }
 
 func Set_all_lamps(on_off global.On_off_t) {
-	// button lamps
+	// Set all button lamps
 	Set_button_lamp(global.BUTTON_UP, global.FLOOR_1, on_off)
 	Set_button_lamp(global.BUTTON_UP, global.FLOOR_2, on_off)
 	Set_button_lamp(global.BUTTON_UP, global.FLOOR_3, on_off)
@@ -113,30 +130,31 @@ func Set_all_lamps(on_off global.On_off_t) {
 	Set_button_lamp(global.BUTTON_COMMAND, global.FLOOR_3, on_off)
 	Set_button_lamp(global.BUTTON_COMMAND, global.FLOOR_4, on_off)
 
-	// door open lamp
+	// Set door open lamp
 	Set_door_open_lamp(on_off)
 
-	// stop lamp
+	// Set stop lamp
 	Set_stop_lamp(on_off)
 }
 
-func Elevator_to_floor(floor global.Floor_t) {
+func Elevator_to_floor_direct(floor global.Floor_t) {
 	switch {
 	case floor == global.FLOOR_1:
-		Elevator_to_floor_int(1)
+		Elevator_to_floor_direct_int(1)
 	case floor == global.FLOOR_2:
-		Elevator_to_floor_int(2)
+		Elevator_to_floor_direct_int(2)
 	case floor == global.FLOOR_3:
-		Elevator_to_floor_int(3)
+		Elevator_to_floor_direct_int(3)
 	case floor == global.FLOOR_4:
-		Elevator_to_floor_int(4)
+		Elevator_to_floor_direct_int(4)
 	}
 	Set_floor_indicator_lamp(floor)
 }
 
-func Elevator_to_floor_int(floor int) {
-	// if between two floors
+func Elevator_to_floor_direct_int(floor int) {
 	my_floor := Get_floor_sensor_signal()
+
+	// If the elevator is between two floors
 	timer := time.NewTimer(3 * time.Second)
 	timeout := false
 	go func() {
@@ -151,7 +169,7 @@ func Elevator_to_floor_int(floor int) {
 		}
 	}
 
-	// go to desired floor
+	// Go to desired floor
 	my_floor = Get_floor_sensor_signal()
 	if my_floor < floor {
 		for Get_floor_sensor_signal() != floor {
@@ -165,10 +183,41 @@ func Elevator_to_floor_int(floor int) {
 	Set_motor_direction(global.DIR_STOP)
 }
 
+
+func Floor_int_to_floor_t(floor_int int)global.Floor_t{
+	switch {
+	case floor_int == 1:
+		return global.FLOOR_1
+	case floor_int == 2:
+		return global.FLOOR_2
+	case floor_int == 3:
+		return global.FLOOR_3
+	case floor_int == 4:
+		return global.FLOOR_4
+	}
+	return global.FLOOR_1
+}
+
+func Floor_t_to_floor_int(floor global.Floor_t)int{
+	switch {
+	case floor == global.FLOOR_1:
+		return 1
+	case floor == global.FLOOR_2:
+		return 2
+	case floor == global.FLOOR_3:
+		return 3
+	case floor == global.FLOOR_4:
+		return 4
+	}
+	return -1
+}
+
+
 func Elevator_init() {
 	Io_init()
 
-	fmt.Println("Ready to clear!")
 	Set_all_lamps(global.OFF)
-	Elevator_to_floor(global.FLOOR_1)
+	Elevator_to_floor_direct(global.FLOOR_1)
+
+	fmt.Println("Elevator initialization done!")
 }
