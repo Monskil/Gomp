@@ -5,6 +5,7 @@ import (
   "queue"
   "driver"
   "fmt"
+  "time"
 )
 /* Hva skal fsm gjøre?
 - Sjekke elev state og si hva den skal gjøre
@@ -19,7 +20,7 @@ const (
 
 
 func State_handler(updated_order_chan chan queue.Order, global_order_list_chan chan [global.NUM_GLOBAL_ORDERS]queue.Order, internal_order_list_chan chan [global.NUM_INTERNAL_ORDERS]queue.Order ){
-	fmt.Println("Hello from state")
+	fmt.Println("State handler is up and running")
 	elev_state := Idle
 	current_order_chan := make(chan queue.Order)
 	var current_order queue.Order
@@ -50,7 +51,6 @@ func event_idle(global_order_list_chan chan [global.NUM_GLOBAL_ORDERS]queue.Orde
 	// -- burde ta inn nåværende liste og ikke starte med en tom en
 	var internal_order_list  [global.NUM_INTERNAL_ORDERS]queue.Order
 	var global_order_list  [global.NUM_GLOBAL_ORDERS]queue.Order //hvis vi går inn i idle med full liste skjer det ingenting før ny ordre kommer
-
 	for{
 		for i := 0 ; i < global.NUM_INTERNAL_ORDERS ; i++ {
 			if internal_order_list[i].Order_state != queue.Inactive {
@@ -60,7 +60,7 @@ func event_idle(global_order_list_chan chan [global.NUM_GLOBAL_ORDERS]queue.Orde
 		}
 		for i := 0 ; i < global.NUM_GLOBAL_ORDERS ; i++ {
 			if global_order_list[i].Order_state != queue.Inactive {
-				current_order = internal_order_list[i]
+				current_order = global_order_list[i]
 				return current_order
 			}
 		}
@@ -78,9 +78,16 @@ func event_idle(global_order_list_chan chan [global.NUM_GLOBAL_ORDERS]queue.Orde
 func event_moving(updated_order_chan chan queue.Order, current_order queue.Order){
 	fmt.Println("Running event: Moving.")
 
+	// Make order list to test, should be sent through channel
+	var order_list [global.NUM_ORDERS]queue.Order
+	order_list[2].Floor = global.FLOOR_2
+	fmt.Println("My order list is: ", order_list)
+
 	current_order.Order_state = queue.Executing
 	updated_order_chan <- current_order
-	driver.Elevator_to_floor(current_order.Floor)
+	//driver.Elevator_to_floor_direct(current_order.Floor)
+	floor := current_order.Floor
+	elevator_to_floor(floor, order_list, updated_order_chan, current_order)
 
 	// -- Her må det lages noe som gjør at den kan hente folk på veien
 	// ---- dvs sjekke hver gang den kommer til en etasje om den har en bestilling der
@@ -102,6 +109,67 @@ func event_moving(updated_order_chan chan queue.Order, current_order queue.Order
 func event_door_open(updated_order_chan chan queue.Order, current_order queue.Order){
 	fmt.Println("Running event: Door open.")
 	driver.Open_door()
+	fmt.Println(driver.Get_floor_sensor_signal())
 	current_order.Order_state = queue.Finished
 	updated_order_chan <- current_order
+}
+
+func elevator_to_floor(floor global.Floor_t, order_list [global.NUM_ORDERS]queue.Order,updated_order_chan chan queue.Order, current_order queue.Order){
+	current_floor_int := driver.Get_floor_sensor_signal()
+	current_floor := driver.Floor_int_to_floor_t(current_floor_int)
+
+	floor_int := driver.Floor_t_to_floor_int(floor)
+
+	// If the elevator is between two floors
+	timer := time.NewTimer(3 * time.Second)
+	timeout := false
+	go func() {
+		<-timer.C
+		timeout = true
+	}()
+	for driver.Get_floor_sensor_signal() == -1 {
+		if !timeout {
+			driver.Set_motor_direction(global.DIR_UP)
+		} else if timeout {
+			driver.Set_motor_direction(global.DIR_DOWN)
+		}
+	}
+
+	// Go to desired floor
+	if current_floor_int < floor_int {
+		fmt.Println("Going up.")
+		for driver.Get_floor_sensor_signal() != floor_int {
+			driver.Set_motor_direction(global.DIR_UP)
+			current_floor = driver.Floor_int_to_floor_t(driver.Get_floor_sensor_signal())
+			
+			// When we arrive at any floor, check for order
+			if driver.Get_floor_sensor_signal() != -1 {
+				pick_up_order_on_the_way(current_floor, order_list, updated_order_chan, current_order)
+				time.Sleep(10*time.Millisecond)
+			}
+		}
+	} else if current_floor_int > floor_int {
+		fmt.Println("Going down.")
+		for driver.Get_floor_sensor_signal() != floor_int {
+			driver.Set_motor_direction(global.DIR_DOWN)
+			current_floor = driver.Floor_int_to_floor_t(driver.Get_floor_sensor_signal())
+			
+			// When we arrive at any floor, check for order
+			if driver.Get_floor_sensor_signal() != -1 {
+				pick_up_order_on_the_way(current_floor, order_list, updated_order_chan, current_order)
+				time.Sleep(10*time.Millisecond)
+			}
+		}
+	}
+	// Stop when at desired floor
+	driver.Set_motor_direction(global.DIR_STOP)
+}
+
+func pick_up_order_on_the_way(floor global.Floor_t, order_list [global.NUM_ORDERS]queue.Order, updated_order_chan chan queue.Order, current_order queue.Order){
+	// If the elevator has an order in this floor, stop and take this order
+	order_in_floor := queue.Check_if_order_in_floor(floor, order_list)
+	if order_in_floor {
+		driver.Set_motor_direction(global.DIR_STOP)
+		event_door_open(updated_order_chan, current_order)
+	}
 }
