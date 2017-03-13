@@ -13,26 +13,29 @@ const (
 
 type IP string
 
-type master_msg struct {
+type Master_msg struct {
 	Address IP
 	//global_liste
 }
 
-type slave_msg struct {
+type Slave_msg struct {
   Address IP
 }
   
 func Network_init(master bool) {
 	//THIS IS NOW RUNNING AS SLAVE
   var receivePort, broadcastPort int
+
+   master_sender := make(chan Master_msg)
+   master_receiver := make(chan Slave_msg)
+   
+    slave_sender := make(chan Slave_msg)
+    slave_receiver := make(chan Master_msg)
   if master {
     fmt.Println("Connecting as the master")
     receivePort = slavePort
     broadcastPort = masterPort
 
-
-    master_sender := make(chan master_msg)
-    master_receiver := make(chan slave_msg)
     go bcast.Transmitter(broadcastPort, master_sender)
     go bcast.Receiver(receivePort, master_receiver)
 	 
@@ -41,17 +44,14 @@ func Network_init(master bool) {
     receivePort = masterPort
     broadcastPort = slavePort
 	  
-   
-    slave_sender := make(chan slave_msg)
-    slave_receiver := make(chan master_msg)
     go bcast.Transmitter(broadcastPort, slave_sender)
     go bcast.Receiver(receivePort, slave_receiver)
     }
 
-    var msg master_msg
-    msg.IP = "Master sending msg"
+    var msg Master_msg
+    msg.Address = "Master sending msg"
     for {
-    	master_sender <- master_msg
+    	master_sender <- msg
     	time.Sleep(1*time.Second)
     }
 
