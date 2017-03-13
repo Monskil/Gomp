@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-// Elevator states
+// Elevator states 
 const (
 	Idle int = iota
 	Moving
