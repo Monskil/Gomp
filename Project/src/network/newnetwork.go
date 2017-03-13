@@ -26,23 +26,28 @@ func Network_init(master bool) {
     fmt.Println("Connecting as the master")
     receivePort = masterPort
     broadcastPort = slavePort
+	  
+
+    master_sender := make(chan master_msg)
+    master_receiver := make(chan slave_msg)
+    go bcast.Transmitter(broadcastPort, master_sender)
+    go bcast.Receiver(receivePort, master_receiver)
+	 
     } else {
     fmt.Println("Connecting as a slave")
     receivePort = masterPort
     broadcastPort = slavePort
+	  
+   
+    slave_sender := make(chan Slave_msg)
+    slave_receiver := make(chan Master_msg)
+    go bcast.Transmitter(broadcastPort, slave_sender)
+    go bcast.Receiver(receivePort, slave_receiver)
     }
-  
-  
-func Network_init(master bool, sendChannel, receiveChannel chan UDPMessage, networkLogger log.Logger) {
-	var localPort, broadcastPort string
-	if master {
-		networkLogger.Print("Connecting as master")
-		localPort = masterPort
-		broadcastPort = slavePort
-	} else {
-		networkLogger.Print("Connecting as slave")
-		localPort = slavePort
-		broadcastPort = masterPort
-	}
+}
 
-	}
+	
+	
+	
+	
+	//--------------------------------------------------------------------------------------------//
