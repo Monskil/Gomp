@@ -48,11 +48,11 @@ func Network_init(master bool) {
     go bcast.Receiver(receivePort, slave_receiver)
     }
 
-    var msg slave_msg
-    msg.IP = "Slave sending msg"
+    var msg master_msg
+    msg.IP = "Master sending msg"
     for {
-    	slave_sender <- slave_msg
-    	time.Sleep(1*second)
+    	master_sender <- master_msg
+    	time.Sleep(1*time.Second)
     }
 
  }
