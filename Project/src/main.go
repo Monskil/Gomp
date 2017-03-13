@@ -34,7 +34,7 @@ func main() {
 	//Global_order_list [global.NUM_GLOBAL_ORDERS]queue.Order
 
 	new_order_chan := make(chan queue.Order, 10) //Er buffra til 10 for da får alle mulig ebestillinger plass
-	updated_order_chan := make(chan queue.Order, 10)
+	updated_order_chan := make(chan queue.Order, 10) 
 	external_order_list_chan := make(chan [global.NUM_GLOBAL_ORDERS]queue.Order)
 	internal_order_list_chan := make(chan [global.NUM_INTERNAL_ORDERS]queue.Order)
 	new_order_bool_chan := make(chan bool)
