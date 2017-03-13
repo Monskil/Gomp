@@ -2,8 +2,18 @@ package queue
 
 
 //compares the cost for the 3 elevators
+// should take in num elevators online
 func compare_cost() {
 
+	/*
+var value[num_elevators] int
+min_val int
+elev_todo = lowest IP
+for i:= 0 ; i<num_elevators ; i++ {
+	value[i] = Calculate_cost(elev[i])
+if value[i] < min_val { elev_todo = elev[i], min_val = value[i]}}
+Return / push channel who is going to do it
+	*/
 	if ((cost_1 < cost_2) && (cost_1 < cost_3)) {
 		elevator 1 gets it
 	} else if ((cost_2 < cost_1) && (cost_2 < cost_3)) {
