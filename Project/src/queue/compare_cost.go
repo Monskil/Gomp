@@ -3,10 +3,10 @@ package queue
 
 //compares the cost for the n elevators
 // should take in num elevators online
-func compare_cost(elevator[num_elevators_online] queue.Elev_info, num_elevators_online int) queue.Elev_info.Elev_ip {
+func compare_cost(elevator[num_elevators_online] Elev_info, num_elevators_online int) Elev_info.Elev_ip {
 
 	lowest_cost := 100 // Calculate_cost(elevator[0])
-	var best_suited_elevator queue.Elev_info
+	var best_suited_elevator Elev_info
 
 
 	for i:= 0 ; i < num_elevators_online ; i++ {
