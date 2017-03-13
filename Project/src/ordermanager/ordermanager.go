@@ -10,6 +10,16 @@ import (
 
 //-- We must make a function for this..
 
+func Make_new_order(button global.Button_t, floor global.Floor_t, state global.Order_state, elev global.Assigned_to)queue.Order{
+	var order queue.Order
+	order.Button = button
+	order.Floor = floor
+	order.Order_state = state
+	order.Assigned_to = elev //Her bør kanskje kost-funksjonen kjøres?? Iallefall hvis heisens state er Inactive
+	return order
+	//PÅ ALLE COMMAND, ASSIGNED TO BØR VÆRE SEG SELV.
+}
+
 func Detect_button_pressed(new_order_chan chan queue.Order) {
 	fmt.Println("Running: Detect button pressed. ")
 	var order queue.Order
@@ -17,90 +27,56 @@ func Detect_button_pressed(new_order_chan chan queue.Order) {
 	for {
 
 		if driver.Get_button_signal(global.BUTTON_UP, global.FLOOR_1) != 0 {
-			order = queue.Make_new_order(global.BUTTON_UP, global.FLOOR_1, queue.Active, global.ELEV_1)
-			/*order.Button = global.BUTTON_UP
-			order.Floor = global.FLOOR_1
-			order.Order_state = queue.Active
-			fmt.Println(order.Order_state, queue.Active)
-			order.Assigned_to = global.ELEV_1*/
+			order = queue.Make_new_order(global.BUTTON_UP, global.FLOOR_1, queue.Active, global.NONE)
 			new_order_chan <- order
 			time.Sleep(1 * time.Second)
 		}
 		if driver.Get_button_signal(global.BUTTON_UP, global.FLOOR_2) != 0 {
-			order.Button = global.BUTTON_UP
-			order.Floor = global.FLOOR_2
-			order.Order_state = queue.Active
-			order.Assigned_to = global.ELEV_1
+			order = queue.Make_new_order(global.BUTTON_UP, global.FLOOR_2, queue.Active, global.NONE)
 			new_order_chan <- order
-
 			time.Sleep(1 * time.Second)
 
 		}
 		if driver.Get_button_signal(global.BUTTON_DOWN, global.FLOOR_2) != 0 {
-			order.Button = global.BUTTON_DOWN
-			order.Floor = global.FLOOR_2
-			order.Order_state = queue.Active
-			order.Assigned_to = global.ELEV_1
+			order = queue.Make_new_order(global.BUTTON_DOWN, global.FLOOR_2, queue.Active, global.NONE)
 			new_order_chan <- order
 			time.Sleep(1 * time.Second)
 		}
 		if driver.Get_button_signal(global.BUTTON_UP, global.FLOOR_3) != 0 {
-			order.Button = global.BUTTON_UP
-			order.Floor = global.FLOOR_3
-			order.Order_state = queue.Active
-			order.Assigned_to = global.ELEV_1
+			order = queue.Make_new_order(global.BUTTON_UP, global.FLOOR_3, queue.Active, global.NONE)
 			new_order_chan <- order
 			time.Sleep(1 * time.Second)
 		}
 		if driver.Get_button_signal(global.BUTTON_DOWN, global.FLOOR_3) != 0 {
-			order.Button = global.BUTTON_DOWN
-			order.Floor = global.FLOOR_3
-			order.Order_state = queue.Active
-			order.Assigned_to = global.ELEV_1
+			order = queue.Make_new_order(global.BUTTON_DOWN, global.FLOOR_3, queue.Active, global.NONE)
 			new_order_chan <- order
 			time.Sleep(1 * time.Second)
 		}
 		if driver.Get_button_signal(global.BUTTON_DOWN, global.FLOOR_4) != 0 {
-			order.Button = global.BUTTON_DOWN
-			order.Floor = global.FLOOR_4
-			order.Order_state = queue.Active
-			order.Assigned_to = global.ELEV_1
+			order = queue.Make_new_order(global.BUTTON_DOWN, global.FLOOR_4, queue.Active, global.NONE)
 			new_order_chan <- order
 			time.Sleep(1 * time.Second)
 		}
 		if driver.Get_button_signal(global.BUTTON_COMMAND, global.FLOOR_1) != 0 {
-			order.Button = global.BUTTON_COMMAND
-			order.Floor = global.FLOOR_1
-			order.Order_state = queue.Active
-			order.Assigned_to = global.ELEV_1
+			order = queue.Make_new_order(global.BUTTON_COMMAND, global.FLOOR_1, queue.Active, global.ELEV_1)
 			new_order_chan <- order
 			time.Sleep(1 * time.Second)
 
 		}
 		if driver.Get_button_signal(global.BUTTON_COMMAND, global.FLOOR_2) != 0 {
 			order = queue.Make_new_order(global.BUTTON_COMMAND, global.FLOOR_2, queue.Active, global.ELEV_1)
-			/*order.Button = global.BUTTON_COMMAND
-			order.Floor = global.FLOOR_2
-			order.Order_state = queue.Active
-			order.Assigned_to = global.ELEV_1*/
 			new_order_chan <- order
 			time.Sleep(1 * time.Second)
 
 		}
 		if driver.Get_button_signal(global.BUTTON_COMMAND, global.FLOOR_3) != 0 {
-			order.Button = global.BUTTON_COMMAND
-			order.Floor = global.FLOOR_3
-			order.Order_state = queue.Active
-			order.Assigned_to = global.ELEV_1
+			order = queue.Make_new_order(global.BUTTON_COMMAND, global.FLOOR_3, queue.Active, global.ELEV_1)
 			new_order_chan <- order
 			time.Sleep(1 * time.Second)
 
 		}
 		if driver.Get_button_signal(global.BUTTON_COMMAND, global.FLOOR_4) != 0 {
-			order.Button = global.BUTTON_COMMAND
-			order.Floor = global.FLOOR_4
-			order.Order_state = queue.Active
-			order.Assigned_to = global.ELEV_1
+			order = queue.Make_new_order(global.BUTTON_COMMAND, global.FLOOR_4, queue.Active, global.ELEV_1)
 			new_order_chan <- order
 			time.Sleep(1 * time.Second)
 
