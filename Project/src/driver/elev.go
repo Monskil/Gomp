@@ -2,8 +2,8 @@ package driver
 
 import (
 	"fmt"
-	"time"
 	"global"
+	"time"
 )
 
 var lamp_channel_matrix = [global.NUM_FLOORS][global.NUM_BUTTONS]int{
@@ -84,17 +84,17 @@ func Get_floor_sensor_signal() int {
 	}
 }
 
-func Get_floor_sensor_signal_floor_t() (global.Floor_t){
-	if Get_floor_sensor_signal() == 1{
+func Get_floor_sensor_signal_floor_t() global.Floor_t {
+	if Get_floor_sensor_signal() == 1 {
 		return global.FLOOR_1
 	}
-	if Get_floor_sensor_signal() == 2{
+	if Get_floor_sensor_signal() == 2 {
 		return global.FLOOR_2
 	}
-	if Get_floor_sensor_signal() == 3{
+	if Get_floor_sensor_signal() == 3 {
 		return global.FLOOR_3
 	}
-	if Get_floor_sensor_signal() == 4{
+	if Get_floor_sensor_signal() == 4 {
 		return global.FLOOR_4
 	} else {
 		return global.FLOOR_1
@@ -183,8 +183,7 @@ func Elevator_to_floor_direct_int(floor int) {
 	Set_motor_direction(global.DIR_STOP)
 }
 
-
-func Floor_int_to_floor_t(floor_int int)global.Floor_t{
+func Floor_int_to_floor_t(floor_int int) global.Floor_t {
 	switch {
 	case floor_int == 1:
 		return global.FLOOR_1
@@ -198,7 +197,7 @@ func Floor_int_to_floor_t(floor_int int)global.Floor_t{
 	return global.FLOOR_1
 }
 
-func Floor_t_to_floor_int(floor global.Floor_t)int{
+func Floor_t_to_floor_int(floor global.Floor_t) int {
 	switch {
 	case floor == global.FLOOR_1:
 		return 1
@@ -212,8 +211,8 @@ func Floor_t_to_floor_int(floor global.Floor_t)int{
 	return -1
 }
 
-
 func Elevator_init() {
+	fmt.Println("Running elevator initialization.")
 	Io_init()
 
 	Set_all_lamps(global.OFF)
