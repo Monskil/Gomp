@@ -8,23 +8,22 @@ import (
 	"time"
 )
 
-// -- we have to get the orders from the buttons
-// -- send these on channels?
-// -- check fsm
-// -- try making an "easy" version for the internal orders first
+//-- We must make a function for this..
 
-func Detect_button_pressed(newOrder chan queue.Order) {
+func Detect_button_pressed(new_order_chan chan queue.Order) {
+	fmt.Println("Running: Detect button pressed. ")
 	var order queue.Order
 
 	for {
 
 		if driver.Get_button_signal(global.BUTTON_UP, global.FLOOR_1) != 0 {
-			order.Button = global.BUTTON_UP
+			order = queue.Make_new_order(global.BUTTON_UP, global.FLOOR_1, queue.Active, global.ELEV_1)
+			/*order.Button = global.BUTTON_UP
 			order.Floor = global.FLOOR_1
 			order.Order_state = queue.Active
 			fmt.Println(order.Order_state, queue.Active)
-			order.Assigned_to = global.ELEV_1
-			newOrder <- order
+			order.Assigned_to = global.ELEV_1*/
+			new_order_chan <- order
 			time.Sleep(1 * time.Second)
 		}
 		if driver.Get_button_signal(global.BUTTON_UP, global.FLOOR_2) != 0 {
@@ -32,7 +31,7 @@ func Detect_button_pressed(newOrder chan queue.Order) {
 			order.Floor = global.FLOOR_2
 			order.Order_state = queue.Active
 			order.Assigned_to = global.ELEV_1
-			newOrder <- order
+			new_order_chan <- order
 
 			time.Sleep(1 * time.Second)
 
@@ -42,7 +41,7 @@ func Detect_button_pressed(newOrder chan queue.Order) {
 			order.Floor = global.FLOOR_2
 			order.Order_state = queue.Active
 			order.Assigned_to = global.ELEV_1
-			newOrder <- order
+			new_order_chan <- order
 			time.Sleep(1 * time.Second)
 		}
 		if driver.Get_button_signal(global.BUTTON_UP, global.FLOOR_3) != 0 {
@@ -50,7 +49,7 @@ func Detect_button_pressed(newOrder chan queue.Order) {
 			order.Floor = global.FLOOR_3
 			order.Order_state = queue.Active
 			order.Assigned_to = global.ELEV_1
-			newOrder <- order
+			new_order_chan <- order
 			time.Sleep(1 * time.Second)
 		}
 		if driver.Get_button_signal(global.BUTTON_DOWN, global.FLOOR_3) != 0 {
@@ -58,7 +57,7 @@ func Detect_button_pressed(newOrder chan queue.Order) {
 			order.Floor = global.FLOOR_3
 			order.Order_state = queue.Active
 			order.Assigned_to = global.ELEV_1
-			newOrder <- order
+			new_order_chan <- order
 			time.Sleep(1 * time.Second)
 		}
 		if driver.Get_button_signal(global.BUTTON_DOWN, global.FLOOR_4) != 0 {
@@ -66,7 +65,7 @@ func Detect_button_pressed(newOrder chan queue.Order) {
 			order.Floor = global.FLOOR_4
 			order.Order_state = queue.Active
 			order.Assigned_to = global.ELEV_1
-			newOrder <- order
+			new_order_chan <- order
 			time.Sleep(1 * time.Second)
 		}
 		if driver.Get_button_signal(global.BUTTON_COMMAND, global.FLOOR_1) != 0 {
@@ -74,16 +73,17 @@ func Detect_button_pressed(newOrder chan queue.Order) {
 			order.Floor = global.FLOOR_1
 			order.Order_state = queue.Active
 			order.Assigned_to = global.ELEV_1
-			newOrder <- order
+			new_order_chan <- order
 			time.Sleep(1 * time.Second)
 
 		}
 		if driver.Get_button_signal(global.BUTTON_COMMAND, global.FLOOR_2) != 0 {
-			order.Button = global.BUTTON_COMMAND
+			order = queue.Make_new_order(global.BUTTON_COMMAND, global.FLOOR_2, queue.Active, global.ELEV_1)
+			/*order.Button = global.BUTTON_COMMAND
 			order.Floor = global.FLOOR_2
 			order.Order_state = queue.Active
-			order.Assigned_to = global.ELEV_1
-			newOrder <- order
+			order.Assigned_to = global.ELEV_1*/
+			new_order_chan <- order
 			time.Sleep(1 * time.Second)
 
 		}
@@ -92,7 +92,7 @@ func Detect_button_pressed(newOrder chan queue.Order) {
 			order.Floor = global.FLOOR_3
 			order.Order_state = queue.Active
 			order.Assigned_to = global.ELEV_1
-			newOrder <- order
+			new_order_chan <- order
 			time.Sleep(1 * time.Second)
 
 		}
@@ -101,7 +101,7 @@ func Detect_button_pressed(newOrder chan queue.Order) {
 			order.Floor = global.FLOOR_4
 			order.Order_state = queue.Active
 			order.Assigned_to = global.ELEV_1
-			newOrder <- order
+			new_order_chan <- order
 			time.Sleep(1 * time.Second)
 
 		}
