@@ -8,10 +8,7 @@ import (
 	"time"
 )
 
-/* Hva skal fsm gjøre?
-- Sjekke elev state og si hva den skal gjøre
-*/
-
+// Elevator states
 const (
 	Idle int = iota
 	Moving
@@ -19,80 +16,91 @@ const (
 	Stuck
 )
 
-func State_handler(new_order_bool_chan chan bool, updated_order_chan chan queue.Order, global_order_list_chan chan [global.NUM_GLOBAL_ORDERS]queue.Order, internal_order_list_chan chan [global.NUM_INTERNAL_ORDERS]queue.Order) {
+func State_handler(new_order_bool_chan chan bool, updated_order_chan chan queue.Order, external_order_list_chan chan [global.NUM_GLOBAL_ORDERS]queue.Order, internal_order_list_chan chan [global.NUM_INTERNAL_ORDERS]queue.Order) {
 	fmt.Println("Running: State handler. ")
 	elev_state := Idle
+	var internal_order_list [global.NUM_INTERNAL_ORDERS]queue.Order
+	var external_order_list [global.NUM_GLOBAL_ORDERS]queue.Order
 	//current_order_chan := make(chan queue.Order)
 	var current_order queue.Order
 	for {
 		switch elev_state {
 		case Idle:
-			current_order = event_idle(new_order_bool_chan, global_order_list_chan, internal_order_list_chan)
+			current_order, internal_order_list, external_order_list = event_idle(new_order_bool_chan, internal_order_list_chan, external_order_list_chan)
 			elev_state = Moving
 		case Moving:
-			//check if stuck -> Stuck (with timer, if u have been moving more than 10 sec)
-			//check if reached floor (always turn on floor light when u r) -> check_if_order -> state = Door_open
-			event_moving(updated_order_chan, current_order)
+			event_moving(current_order, updated_order_chan, internal_order_list, internal_order_list_chan, external_order_list, external_order_list_chan)
 			elev_state = Door_open
 		case Door_open:
 			event_door_open(updated_order_chan, current_order)
 			elev_state = Idle
 		case Stuck:
-			//call for help = tell master you cant move
-			//check if your floor is changed, then you are not stuck anymore. Tell the master
+			event_stuck()
+			elev_state = Idle
 		}
 	}
 }
 
-func event_idle(new_order_bool_chan chan bool, global_order_list_chan chan [global.NUM_GLOBAL_ORDERS]queue.Order, internal_order_list_chan chan [global.NUM_INTERNAL_ORDERS]queue.Order) queue.Order {
+func event_idle(new_order_bool_chan chan bool, internal_order_list_chan chan [global.NUM_INTERNAL_ORDERS]queue.Order, external_order_list_chan chan [global.NUM_GLOBAL_ORDERS]queue.Order) (queue.Order, [global.NUM_INTERNAL_ORDERS]queue.Order, [global.NUM_GLOBAL_ORDERS]queue.Order) {
 	fmt.Println("Running event: Idle.")
 
 	var current_order queue.Order
-	// -- burde ta inn nåværende liste og ikke starte med en tom en
+	//-- må endre til å ta inn nåværende liste og ikke starte med en tom en
 	var internal_order_list [global.NUM_INTERNAL_ORDERS]queue.Order
-	var global_order_list [global.NUM_GLOBAL_ORDERS]queue.Order //hvis vi går inn i idle med full liste skjer det ingenting før ny ordre kommer
+	var external_order_list [global.NUM_GLOBAL_ORDERS]queue.Order
 
 	// Check if there is an order in one of the lists
 	for {
+		fmt.Println("At the top")
 		for i := 0; i < global.NUM_INTERNAL_ORDERS; i++ {
 			if internal_order_list[i].Order_state != queue.Inactive {
 				current_order = internal_order_list[i]
-				return current_order
+				return current_order, internal_order_list, external_order_list
 			}
 		}
 		for i := 0; i < global.NUM_GLOBAL_ORDERS; i++ {
-			if global_order_list[i].Order_state != queue.Inactive {
-				current_order = global_order_list[i]
-				return current_order
+			if external_order_list[i].Order_state != queue.Inactive {
+				current_order = external_order_list[i]
+				return current_order, internal_order_list, external_order_list
 			}
 		}
 
 		// Wait until some order is added
-		/*
-			select{
-			case catch_internal_list :=<- internal_order_list_chan:
-				internal_order_list = catch_internal_list
-			case  catch_global_list :=<- global_order_list_chan:
-				global_order_list = catch_global_list
-			}*/
-
 		select {
 		case catch_new_order := <-new_order_bool_chan:
-			fmt.Println(catch_new_order)
+			fmt.Println("Got new order bool ", catch_new_order, " in Idle.")
+			//-- using catch_var to be able to use the lists outside of select
 			catch_internal_order_list := <-internal_order_list_chan
+			catch_external_order_list := <-external_order_list_chan
 			internal_order_list = catch_internal_order_list
-			internal_order_list_chan <- internal_order_list
+			external_order_list = catch_external_order_list
+
+			fmt.Println("1", internal_order_list, external_order_list)
+
+			// Push lists back to channels
+			go queue.Internal_order_list_to_channel(internal_order_list, internal_order_list_chan)
+			go queue.External_order_list_to_channel(external_order_list, external_order_list_chan)
+			break
 		}
 	}
 }
 
-func event_moving(updated_order_chan chan queue.Order, current_order queue.Order) {
+func event_moving(current_order queue.Order, updated_order_chan chan queue.Order, internal_order_list [global.NUM_INTERNAL_ORDERS]queue.Order, internal_order_list_chan chan [global.NUM_INTERNAL_ORDERS]queue.Order, external_order_list [global.NUM_GLOBAL_ORDERS]queue.Order, external_order_list_chan chan [global.NUM_GLOBAL_ORDERS]queue.Order) {
 	fmt.Println("Running event: Moving.")
 
-	//-- Make order list to test, should be sent through channel
+	// Go to state Stuck if the elevator is in state Moving for more than 12 seconds
+	//-- Must implement a way to check if timeout when inside elevator to floor
+	/*timer := time.NewTimer(12 * time.Second)
+	timeout := false
+	go func() {
+		<-timer.C
+		timeout = true
+	}()*/
+
 	var order_list [global.NUM_ORDERS]queue.Order
-	order_list[2].Floor = global.FLOOR_2
-	fmt.Println("My order list is: ", order_list)
+
+	order_list = queue.Make_my_order_list(internal_order_list, external_order_list)
+	fmt.Println("My order list is now: ", order_list)
 
 	// Set order state to executing
 	current_order.Order_state = queue.Executing
@@ -108,10 +116,25 @@ func event_door_open(updated_order_chan chan queue.Order, current_order queue.Or
 
 	// Open door
 	driver.Open_door()
+	driver.Set_button_lamp(current_order.Button, current_order.Floor, global.OFF) //-- can be moved to before open door
 
 	// Set order state to finished
 	current_order.Order_state = queue.Finished
 	updated_order_chan <- current_order
+}
+
+func event_stuck() {
+	// If the floor is changed, elevator is no longer stuck
+	// Go to the first floor and set state to idle
+	fmt.Println("Running event: Stuck.")
+	my_floor := driver.Get_floor_sensor_signal()
+	for {
+		//-- Tell master the elevator is stuck (?)
+		if my_floor != driver.Get_floor_sensor_signal() {
+			driver.Elevator_to_floor_direct(global.FLOOR_1)
+			break
+		}
+	}
 }
 
 func elevator_to_floor(floor global.Floor_t, order_list [global.NUM_ORDERS]queue.Order, updated_order_chan chan queue.Order, current_order queue.Order) {
@@ -154,7 +177,6 @@ func elevator_to_floor(floor global.Floor_t, order_list [global.NUM_ORDERS]queue
 	} else if current_floor_int > floor_int {
 		fmt.Println("Going down.")
 		driver.Set_motor_direction(global.DIR_DOWN)
-		//time.Sleep(100 * time.Millisecond)
 
 		for driver.Get_floor_sensor_signal() != floor_int {
 			current_floor = driver.Floor_int_to_floor_t(driver.Get_floor_sensor_signal())
