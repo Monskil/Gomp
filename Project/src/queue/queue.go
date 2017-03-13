@@ -1,9 +1,9 @@
 package queue
 
 import (
-	"global"
-	//"driver"
+	"driver"
 	"fmt"
+	"global"
 )
 
 //Order states
@@ -79,6 +79,9 @@ func Handle_orders(new_order_bool_chan chan bool, new_order_chan chan Order, upd
 			go Internal_order_list_to_channel(internal_order_list, internal_order_list_chan)
 			go External_order_list_to_channel(external_order_list, external_order_list_chan)
 
+			// Set button lamp
+			driver.Set_button_lamp(new_order.Button, new_order.Floor, global.ON)
+
 			// Let the world know we have a new order
 			go Bool_to_new_order_channel(true, new_order_bool_chan)
 			fmt.Println("New order bool chan <- true")
@@ -120,9 +123,9 @@ func Update_state(update_order Order, internal_order_list [global.NUM_INTERNAL_O
 			fmt.Println("Update internal order loop.")
 			internal_order_list[i].Order_state = update_order.Order_state
 			return internal_order_list, external_order_list
-		} else if i < global.NUM_GLOBAL_ORDERS && update_order.Button == external_order_list[i].Button && update_order.Floor == external_order_list[i].Floor {
+		} else if i > global.NUM_INTERNAL_ORDERS-1 && update_order.Button == external_order_list[i-global.NUM_INTERNAL_ORDERS].Button && update_order.Floor == external_order_list[i-global.NUM_INTERNAL_ORDERS].Floor {
 			fmt.Println("Update external order loop.")
-			external_order_list[i].Order_state = update_order.Order_state
+			external_order_list[i-global.NUM_INTERNAL_ORDERS].Order_state = update_order.Order_state
 			return internal_order_list, external_order_list
 		}
 	}
@@ -145,7 +148,7 @@ func Add_new_internal_order(new_order Order, internal_order_list [global.NUM_INT
 			return internal_order_list
 		}
 	}
-	fmt.Println("Error: No order was added.")
+	fmt.Println("Error: No internal order was added.")
 	return internal_order_list
 }
 
@@ -164,7 +167,7 @@ func Add_new_external_order(new_order Order, external_order_list [global.NUM_GLO
 			return external_order_list
 		}
 	}
-	fmt.Println("Error: No order was added.")
+	fmt.Println("Error: No external order was added.")
 	return external_order_list
 }
 
@@ -186,15 +189,12 @@ func Delete_internal_order(updated_order Order, internal_order_list [global.NUM_
 	clean_order := Make_new_order(global.BUTTON_UP, global.FLOOR_1, Inactive, global.NONE)
 
 	for i := 0; i < global.NUM_INTERNAL_ORDERS; i++ {
-		fmt.Println("In the loop in delete_internal_order.", internal_order_list[i].Order_state, Finished)
 		if internal_order_list[i].Order_state == Finished {
 			fmt.Println("An internal order is marked finished.")
 			for j := i; j < global.NUM_INTERNAL_ORDERS; j++ {
 				if j < global.NUM_INTERNAL_ORDERS-1 {
-					fmt.Println("Moving order.")
 					internal_order_list[j] = internal_order_list[j+1]
 				} else if j == global.NUM_INTERNAL_ORDERS-1 {
-					fmt.Println("Adding last clean order.")
 					internal_order_list[j] = clean_order
 				}
 			}
@@ -210,13 +210,11 @@ func Delete_external_order(updated_order Order, external_order_list [global.NUM_
 
 	for i := 0; i < global.NUM_GLOBAL_ORDERS; i++ {
 		if external_order_list[i].Order_state == Finished {
-			fmt.Println("A global order is marked finished.")
+			fmt.Println("An external order is marked finished.")
 			for j := i; j < global.NUM_ORDERS; j++ {
 				if j < global.NUM_GLOBAL_ORDERS-1 {
-					fmt.Println("Moving order.")
 					external_order_list[j] = external_order_list[j+1]
 				} else if j == global.NUM_GLOBAL_ORDERS-1 {
-					fmt.Println("Adding last clean order.")
 					external_order_list[j] = clean_order
 				}
 			}
