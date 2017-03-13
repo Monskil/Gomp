@@ -3,8 +3,8 @@ package network
 import (
 	"fmt"
 	//"global"
-	"queue"
 	"flag"
+	"queue"
 	//"network/bcast"
 	"network/localip"
 	"network/peers"
@@ -23,7 +23,8 @@ type Slave_msg struct {
 	Slave_info       queue.Elev_info
 }
 
-func Network_info(){
+func Network_info() {
+	fmt.Print("Running: Network info. ")
 	//Kan brukes til å vite om masteren har falt ut (vet at det alltid er den med høyest IP). Hvis lengden av peers er lik 0
 	//er man alene på nettverket.
 	// Our id can be anything. Here we pass it on the command line, using
@@ -61,7 +62,6 @@ func Network_info(){
 	go peers.Transmitter(20243, id, peerTxEnable)
 	go peers.Receiver(20243, peerUpdateCh)
 
-	
 	for {
 		select {
 		case newInfo := <-peerUpdateCh:
