@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-// Elevator states 
+// Elevator states
 const (
 	Idle int = iota
 	Moving
@@ -116,11 +116,15 @@ func event_door_open(updated_order_chan chan queue.Order, current_order queue.Or
 
 	// Open door
 	driver.Open_door()
+	fmt.Println("Door opened.")
 	driver.Set_button_lamp(current_order.Button, current_order.Floor, global.OFF) //-- can be moved to before open door
+	fmt.Println("Door open lamp set on.")
 
 	// Set order state to finished
 	current_order.Order_state = queue.Finished
-	updated_order_chan <- current_order
+	fmt.Println("Current order state set to finished.")
+	go queue.Order_to_updated_order_chan(current_order, updated_order_chan)
+	fmt.Println("Order sent on updated order chan.")
 }
 
 func event_stuck() {
@@ -138,11 +142,6 @@ func event_stuck() {
 }
 
 func elevator_to_floor(floor global.Floor_t, order_list [global.NUM_ORDERS]queue.Order, updated_order_chan chan queue.Order, current_order queue.Order) {
-	current_floor_int := driver.Get_floor_sensor_signal()
-	current_floor := driver.Floor_int_to_floor_t(current_floor_int)
-
-	floor_int := driver.Floor_t_to_floor_int(floor)
-
 	// Check if the elevator is between two floors
 	timer := time.NewTimer(3 * time.Second)
 	timeout := false
@@ -159,16 +158,21 @@ func elevator_to_floor(floor global.Floor_t, order_list [global.NUM_ORDERS]queue
 	}
 
 	// Go to desired floor
+	current_floor_int := driver.Get_floor_sensor_signal()
+	current_floor := driver.Floor_int_to_floor_t(current_floor_int)
+	floor_int := driver.Floor_t_to_floor_int(floor)
 	fmt.Println(current_floor_int, floor_int)
+
 	if current_floor_int < floor_int {
 		fmt.Println("Going up.")
 		driver.Set_motor_direction(global.DIR_UP)
-		time.Sleep(100 * time.Millisecond)
+
 		for driver.Get_floor_sensor_signal() != floor_int {
 			current_floor = driver.Floor_int_to_floor_t(driver.Get_floor_sensor_signal())
 
 			// When arriving at any floor, check for order
 			if driver.Get_floor_sensor_signal() != -1 {
+				driver.Set_floor_indicator_lamp(floor)
 				pick_up_order_on_the_way(current_floor, order_list, updated_order_chan, current_order)
 				time.Sleep(10 * time.Millisecond)
 			}
@@ -183,11 +187,13 @@ func elevator_to_floor(floor global.Floor_t, order_list [global.NUM_ORDERS]queue
 
 			// When we arrive at any floor, check for order
 			if driver.Get_floor_sensor_signal() != -1 {
+				driver.Set_floor_indicator_lamp(floor)
 				pick_up_order_on_the_way(current_floor, order_list, updated_order_chan, current_order)
 				time.Sleep(10 * time.Millisecond)
 			}
 		}
 	}
+
 	// Stop when at desired floor
 	driver.Set_motor_direction(global.DIR_STOP)
 }
