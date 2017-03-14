@@ -29,6 +29,9 @@ type Elev_info struct {
 	Elev_last_floor global.Floor_t
 	Elev_dir        global.Motor_direction_t
 	Elev_state      int
+	//-- Can/should we put it here
+	Order_list             [global.NUM_ORDERS]Order
+	Elev_destination_floor global.Floor_t
 }
 
 // ---- Go functions to make channels love us again -----
@@ -44,10 +47,14 @@ func Bool_to_new_order_channel(value bool, new_order_bool_chan chan bool) {
 	new_order_bool_chan <- value
 }
 
+func Order_to_updated_order_chan(order Order, updated_order_chan chan Order) {
+	updated_order_chan <- order
+}
+
 //----------------------------------------------------------
 
-func Handle_orders(new_order_bool_chan chan bool, new_order_chan chan Order, update_order_chan chan Order, external_order_list_chan chan [global.NUM_GLOBAL_ORDERS]Order, internal_order_list_chan chan [global.NUM_INTERNAL_ORDERS]Order) {
-	fmt.Print("Running: Handle orders. ")
+func Order_handler(new_order_bool_chan chan bool, new_order_chan chan Order, update_order_chan chan Order, external_order_list_chan chan [global.NUM_GLOBAL_ORDERS]Order, internal_order_list_chan chan [global.NUM_INTERNAL_ORDERS]Order) {
+	fmt.Print("Running: Order handler. ")
 	var external_order_list [global.NUM_GLOBAL_ORDERS]Order
 	var internal_order_list [global.NUM_INTERNAL_ORDERS]Order
 
@@ -93,7 +100,6 @@ func Handle_orders(new_order_bool_chan chan bool, new_order_chan chan Order, upd
 			internal_order_list := <-internal_order_list_chan
 			external_order_list := <-external_order_list_chan
 
-			fmt.Println("Chan to lists worked.")
 			update_order := catch_update_order
 
 			// Update state
@@ -101,7 +107,7 @@ func Handle_orders(new_order_bool_chan chan bool, new_order_chan chan Order, upd
 
 			// Delete order if the order state is finished
 			if update_order.Order_state == Finished {
-				fmt.Println("Order is marked finished")
+				fmt.Println("Order is marked finished, update_order: ", update_order)
 				internal_order_list, external_order_list = Delete_order(update_order, internal_order_list, external_order_list)
 			}
 			fmt.Println("Finished updating state.")
@@ -118,19 +124,22 @@ func Update_state(update_order Order, internal_order_list [global.NUM_INTERNAL_O
 	fmt.Println("Running Update_state")
 	fmt.Println("My update_order: ", update_order)
 
-	for i := 0; i < global.NUM_ORDERS; i++ {
-		if i < global.NUM_INTERNAL_ORDERS && update_order.Button == internal_order_list[i].Button && update_order.Floor == internal_order_list[i].Floor {
+	for i := 0; i < global.NUM_INTERNAL_ORDERS; i++ {
+		if update_order.Button == internal_order_list[i].Button && update_order.Floor == internal_order_list[i].Floor {
 			fmt.Println("Update internal order loop.")
 			internal_order_list[i].Order_state = update_order.Order_state
 			return internal_order_list, external_order_list
-		} else if i > global.NUM_INTERNAL_ORDERS-1 && update_order.Button == external_order_list[i-global.NUM_INTERNAL_ORDERS].Button && update_order.Floor == external_order_list[i-global.NUM_INTERNAL_ORDERS].Floor {
+		}
+	}
+	for i := 0; i < global.NUM_GLOBAL_ORDERS; i++ {
+		if update_order.Button == external_order_list[i].Button && update_order.Floor == external_order_list[i].Floor {
 			fmt.Println("Update external order loop.")
-			external_order_list[i-global.NUM_INTERNAL_ORDERS].Order_state = update_order.Order_state
+			external_order_list[i].Order_state = update_order.Order_state
 			return internal_order_list, external_order_list
 		}
 	}
 
-	fmt.Println("Error: State was not updated.")
+	fmt.Println("Error: State was not updated, update order: ", update_order)
 	return internal_order_list, external_order_list
 }
 
@@ -200,6 +209,7 @@ func Delete_internal_order(updated_order Order, internal_order_list [global.NUM_
 			}
 		}
 	}
+	fmt.Println("Internal order deleted, internal order list is now: ", internal_order_list)
 	return internal_order_list
 }
 
@@ -220,6 +230,7 @@ func Delete_external_order(updated_order Order, external_order_list [global.NUM_
 			}
 		}
 	}
+	fmt.Println("External order deleted, external order list is now: ", external_order_list)
 	return external_order_list
 }
 
