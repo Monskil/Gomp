@@ -1,5 +1,4 @@
 // From TTK4145/Network-go
-
 package bcast
 
 import (

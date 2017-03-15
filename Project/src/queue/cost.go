@@ -5,6 +5,38 @@ import (
 	"global"
 )
 
+func Compare_cost(elevators [global.NUM_ELEV]Elev_info, num_elevators_online int) Elev_info {
+	lowest_cost := 100
+	var best_suited_elevator Elev_info
+
+	for i := 0; i < num_elevators_online; i++ {
+		cost := Calculate_cost(elevators[i].Order_list, elevators[i].Elev_dir, elevators[i].Elev_destination_floor, elevators[i].Elev_last_floor)
+
+		if cost == -2 {
+			best_suited_elevator = elevators[i]
+			break
+		} else if cost < lowest_cost {
+			best_suited_elevator = elevators[i]
+			lowest_cost = cost
+		}
+	}
+	return best_suited_elevator
+}
+
+func calculate_cost(order_list [global.NUM_ORDERS]Order, direction global.Motor_direction_t, destination_floor global.Floor_t, current_floor global.Floor_t) int {
+	cost := 0
+
+	if elevator_is_idle(order_list) {
+		cost = -2
+		return cost
+	} else {
+		cost += order_cost(order_list)
+		cost += direction_cost(direction, destination_floor, current_floor)
+		cost += floor_cost(current_floor, destination_floor)
+	}
+	return cost
+}
+
 // Checking if elevator is free and just waiting for an order
 func elevator_is_idle(order_list [global.NUM_ORDERS]Order) bool {
 	for i := 0; i < global.NUM_ORDERS; i++ {
@@ -64,18 +96,4 @@ func floor_cost(current_floor global.Floor_t, order_floor global.Floor_t) int {
 	}
 
 	return floor_cost
-}
-
-func Calculate_cost(order_list [global.NUM_ORDERS]Order, direction global.Motor_direction_t, destination_floor global.Floor_t, current_floor global.Floor_t) int {
-	cost := 0
-
-	if elevator_is_idle(order_list) {
-		cost = -2
-		return cost
-	} else {
-		cost += order_cost(order_list)
-		cost += direction_cost(direction, destination_floor, current_floor)
-		cost += floor_cost(current_floor, destination_floor)
-	}
-	return cost
 }

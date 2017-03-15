@@ -1,7 +1,7 @@
 package driver
 
 const (
-	//in port 4
+	// In port 4
 	PORT_4_SUBDEVICE      = 3
 	PORT_4_CHANNEL_OFFSET = 16
 	OBSTRUCTION           = (0x300 + 23)
@@ -15,7 +15,7 @@ const (
 )
 
 const (
-	//in port 1
+	// In port 1
 	PORT_1_SUBDEVICE      = 2
 	PORT_1_CHANNEL_OFFSET = 0
 	BUTTON_DOWN2          = (0x200 + 0)
@@ -29,7 +29,7 @@ const (
 )
 
 const (
-	//out port 3
+	// In port 3
 	PORT_3_SUBDEVICE      = 3
 	PORT_3_CHANNEL_OFFSET = 8
 	MOTORDIR              = (0x300 + 15)
@@ -43,7 +43,7 @@ const (
 )
 
 const (
-	//out port 2
+	// In port 2
 	PORT_2_SUBDEVICE      = 3
 	PORT_2_CHANNEL_OFFSET = 0
 	LIGHT_DOWN2           = (0x300 + 7)
@@ -55,10 +55,10 @@ const (
 	LIGHT_FLOOR_IND1      = (0x300 + 0)
 )
 
-//out port 0
+// Out port 0
 const MOTOR = (0x100 + 0)
 
-//non-existing ports (for alignment)
+// Non-existing ports for alignment
 const (
 	BUTTON_DOWN1 = -1
 	BUTTON_UP4   = -1

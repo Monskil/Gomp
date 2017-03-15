@@ -1,5 +1,5 @@
+// From TTK4145/Network-go
 // +build !windows
-
 package conn
 
 import (

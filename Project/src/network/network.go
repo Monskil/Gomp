@@ -1,177 +1,156 @@
 package network
 
 import (
-	"fmt"
-	//"global"
 	"flag"
-	"queue"
-	//"network/bcast"
+	"fmt"
+	"network/bcast"
 	"network/localip"
 	"network/peers"
-	//"time"
+	"strconv"
+	"time"
+	"global"
+	"queue"
 )
 
-// -- kan bruke json marshal greier for å pakke meldingen, og unpakke den
-// -- sender det da som bytes, må være en public struct (stor forbokstav)
+const (
+	master_port = 20079
+	slave_port  = 20179
+)
+
+Local_ip, _ := localip.LocalIP()
+
+type IP string
 
 type Master_msg struct {
-	Master_order_list [6]queue.Order
+	Address IP
+	Global_list [global.NUM_EXTERNAL_ORDERS]queue.Order
 }
 
 type Slave_msg struct {
-	Slave_order_list [10]queue.Order
-	Slave_info       queue.Elev_info
+	Address IP
+	Internal_list [global.NUM_INTERNAL_ORDERS]queue.Order
+	External_list [global.NUM_EXTERNAL_ORDERS]queue.Order
+	Elevator_info queue.Elev_info
 }
 
-func Network_info() {
-	fmt.Print("Running: Network info. ")
-	//Kan brukes til å vite om masteren har falt ut (vet at det alltid er den med høyest IP). Hvis lengden av peers er lik 0
-	//er man alene på nettverket.
-	// Our id can be anything. Here we pass it on the command line, using
-	//  `go run main.go -id=our_id`
+func Choose_master(ip_adresses peers.PeerUpdate) {
+	highest_ip := 0
+	str_local_ip, _ := Local_ip
+	int_local_ip, _ := strconv.Atoi(str_local_ip[12:])
+	for i := 0; i < len(ip_adresses.Peers); i++ {
+		str_ip := ip_adresses.Peers[i]
+		int_ip, _ := strconv.Atoi(str_ip[12:])
+		if int_ip > highest_ip {
+			highest_ip = int_ip
+		}
+	}
+	if int_local_ip == highest_ip {
+		fmt.Println("I am the master.")
+		queue.Is_global = true
+	} else {
+		fmt.Println("I am a slave.")
+		queue.Is_global = false
+	}
+}
+
+func Network_handler() {
 	var id string
 	flag.StringVar(&id, "id", "", "id of this peer")
 	flag.Parse()
+	var new_info peers.PeerUpdate
 
-	// ... or alternatively, we can use the local IP address.
-	// (But since we can run multiple programs on the same PC, we also append the
-	//  process ID)
 	if id == "" {
-		localIP, err := localip.LocalIP()
+		local_ip, err := Local_ip
 		if err != nil {
 			fmt.Println(err)
-			localIP = "DISCONNECTED"
+			local_ip = "Disconnected."
 		}
-		id = fmt.Sprintf(localIP)
-	}
+		id = fmt.Sprintf(local_ip)
 
-	// We make a channel for receiving updates on the id's of the peers that are
-	//  alive on the network
-	peerUpdateCh := make(chan peers.PeerUpdate)
-	// We can disable/enable the transmitter after it has been started.
-	// This could be used to signal that we are somehow "unavailable".
-	peerTxEnable := make(chan bool)
+		peer_update_chan := make(chan peers.PeerUpdate)
+		peer_transmit_enable_chan := make(chan bool)
 
-	//helloTx := make(chan string)
-	//helloRx := make(chan string)
-	// ... and start the transmitter/receiver pair on some port
-	// These functions can take any number of channels! It is also possible to
-	//  start multiple transmitters/receivers on the same port.
-	//go bcast.Transmitter(20244, helloTx)
-	//go bcast.Receiver(20244, helloRx)
-	go peers.Transmitter(20243, id, peerTxEnable)
-	go peers.Receiver(20243, peerUpdateCh)
+		go peers.Transmitter(20243, id, peer_transmit_enable_chan)
+		go peers.Receiver(20243, peer_update_chan)
+		for {
+			select {
+			case new_info_catcher := <-peer_update_chan:
+				new_info = new_info_catcher
 
-	for {
-		select {
-		case newInfo := <-peerUpdateCh:
-			fmt.Printf("Peer update:\n")
-			fmt.Printf("  Peers:    %q\n", newInfo.Peers)
-			fmt.Printf("  New:      %q\n", newInfo.New)
-			fmt.Printf("  Lost:     %q\n", newInfo.Lost)
+				fmt.Printf("Peer update:\n")
+				fmt.Printf("  Peers:    %q\n", new_info.Peers)
+				fmt.Printf("  New:      %q\n", new_info.New)
+				fmt.Printf("  Lost:     %q\n", new_info.Lost)
+				Choose_master(new_info)
+			}
 		}
 	}
-
 }
 
-/*
-func Test_network() {
+func Network_setup(master bool) {
+	var receive_port, broadcast_port int
 
-	//Make channels for sending and receiving HelloMsg
 	master_sender := make(chan Master_msg)
 	master_receiver := make(chan Slave_msg)
 	slave_sender := make(chan Slave_msg)
 	slave_receiver := make(chan Master_msg)
 
-	//Sier hvilken socket som skal gjøre hva
-	go bcast.Transmitter(30000, master_sender)
-	go bcast.Receiver(30000, master_receiver)
-	go bcast.Transmitter(30000, slave_sender)
-	go bcast.Receiver(30000, slave_receiver)
+	if master {
+		fmt.Println("Connecting as the master.")
+		receive_port = slave_port
+		broadcast_port = master_port
 
-	//FIKSER SLAVE_INFO heeer ::::: //
-	var slave_info queue.Elev_info
-	slave_info.Elev_ip, _ = localip.LocalIP()
-	slave_info.Elev_state = 0
-	slave_info.Elev_last_floor = global.FLOOR_2
-	slave_info.Elev_dir = global.DIR_UP
+		go bcast.Transmitter(broadcast_port, master_sender)
+		go bcast.Receiver(receive_port, master_receiver)
+		go master_transmit()
 
-	go func() {
-		master_message := Master_msg{queue.Global_order_list}
-		slave_message := Slave_msg{my_order_list, slave_info}
 		for {
-			master_sender <- master_message
-			slave_sender <- slave_message
-			time.Sleep(1 * time.Second)
+			select {
+			case catch_msg_from_slave := <-master_receiver:
+				fmt.Println("Master received : ", catch_msg_from_slave)
+				queue.Master_msg_handler(catch_msg_from_slave)
+			}
 		}
-	}()
 
-	for {
-		select {
-		case master := <-master_receiver:
-			fmt.Println("Master receiving: ", master)
-			time.Sleep(1 * time.Second)
-		case slave := <-slave_receiver:
-			fmt.Println("Slave receiving: ", slave)
-			time.Sleep(1 * time.Second)
-		}
-	}
-}*/
+	} else {
+		fmt.Println("Connecting as a slave.")
+		receive_port = master_port
+		broadcast_port = slave_port
 
-/*
+		go bcast.Transmitter(broadcast_port, slave_sender)
+		go bcast.Receiver(receive_port, slave_receiver)
+		go slave_transmit()
 
-// Our id can be anything. Here we pass it on the command line, using
-	//  `go run main.go -id=our_id`
-	var id string
-	flag.StringVar(&id, "id", "", "id of this peer")
-	flag.Parse()
-
-	// ... or alternatively, we can use the local IP address.
-	// (But since we can run multiple programs on the same PC, we also append the
-	//  process ID)
-	if id == "" {
-		localIP, err := localip.LocalIP()
-		if err != nil {
-			fmt.Println(err)
-			localIP = "DISCONNECTED"
-		}
-		id = fmt.Sprintf(localIP)
-	}
-
-	// We make a channel for receiving updates on the id's of the peers that are
-	//  alive on the network
-	peerUpdateCh := make(chan peers.PeerUpdate)
-	// We can disable/enable the transmitter after it has been started.
-	// This could be used to signal that we are somehow "unavailable".
-	peerTxEnable := make(chan bool)
-
-	helloTx := make(chan string)
-	helloRx := make(chan string)
-	// ... and start the transmitter/receiver pair on some port
-	// These functions can take any number of channels! It is also possible to
-	//  start multiple transmitters/receivers on the same port.
-	go bcast.Transmitter(20244, helloTx)
-	go bcast.Receiver(20244, helloRx)
-	go peers.Transmitter(20243, id, peerTxEnable)
-	go peers.Receiver(20243, peerUpdateCh)
-	go func() {
 		for {
-			helloTx <- "HELLOOO"
-			time.Sleep(1 * time.Second)
-		}
-
-	}()
-	for {
-		select {
-		case p := <-peerUpdateCh:
-			fmt.Printf("Peer update:\n")
-			fmt.Printf("  Peers:    %q\n", p.Peers)
-			fmt.Printf("  New:      %q\n", p.New)
-			fmt.Printf("  Lost:     %q\n", p.Lost)
-		case hellomessage := <-helloRx:
-			fmt.Println("I received a message: ", hellomessage)
+			select {
+			case catch_msg_from_master := <-slave_receiver:
+				fmt.Println("Slave received : ", catch_msg_from_master)
+				queue.Slave_msg_handler(catch_msg_from_master)
+			}
 		}
 	}
+}
 
+func master_transmit(){
+	var msg Master_msg
+	for {
+		master_msg_to_send.Address = Local_ip
+		master_msg_to_send.Global_list = queue.Global_order_list
+		master_sender <- master_msg_to_send
+		fmt.Println("Master sent the global list: ", master_msg_to_send.Global_list)
+		time.Sleep(1 * time.Second)
+	}
+}
 
-*/
+func slave_transmit(){
+	var msg Slave_msg
+	for {
+		slave_msg_to_send.Address = Local_ip
+		slave_msg_to_send.Internal_list = queue.Internal_order_list
+		slave_msg_to_send.External_list = queue.External_order_list
+		slave_msg_to_send.Elevator_info = queue.Elev_info
+		slave_sender <- slave_msg_to_send
+		fmt.Println("Slave sent the lists: ", )
+		time.Sleep(1 * time.Second)
+	}
+}

@@ -16,11 +16,11 @@ const (
 	Stuck
 )
 
-func State_handler(new_order_bool_chan chan bool, updated_order_chan chan queue.Order, external_order_list_chan chan [global.NUM_GLOBAL_ORDERS]queue.Order, internal_order_list_chan chan [global.NUM_INTERNAL_ORDERS]queue.Order) {
+func State_handler(new_order_bool_chan chan bool, updated_order_chan chan queue.Order, external_order_list_chan chan [global.NUM_EXTERNAL_ORDERS]queue.Order, internal_order_list_chan chan [global.NUM_INTERNAL_ORDERS]queue.Order) {
 	fmt.Println("Running: State handler. ")
 	elev_state := Idle
 	var internal_order_list [global.NUM_INTERNAL_ORDERS]queue.Order
-	var external_order_list [global.NUM_GLOBAL_ORDERS]queue.Order
+	var external_order_list [global.NUM_EXTERNAL_ORDERS]queue.Order
 	//current_order_chan := make(chan queue.Order)
 	var current_order queue.Order
 	for {
@@ -41,13 +41,13 @@ func State_handler(new_order_bool_chan chan bool, updated_order_chan chan queue.
 	}
 }
 
-func event_idle(new_order_bool_chan chan bool, internal_order_list_chan chan [global.NUM_INTERNAL_ORDERS]queue.Order, external_order_list_chan chan [global.NUM_GLOBAL_ORDERS]queue.Order) (queue.Order, [global.NUM_INTERNAL_ORDERS]queue.Order, [global.NUM_GLOBAL_ORDERS]queue.Order) {
+func event_idle(new_order_bool_chan chan bool, internal_order_list_chan chan [global.NUM_INTERNAL_ORDERS]queue.Order, external_order_list_chan chan [global.NUM_EXTERNAL_ORDERS]queue.Order) (queue.Order, [global.NUM_INTERNAL_ORDERS]queue.Order, [global.NUM_EXTERNAL_ORDERS]queue.Order) {
 	fmt.Println("Running event: Idle.")
 
 	var current_order queue.Order
 	//-- må endre til å ta inn nåværende liste og ikke starte med en tom en
 	var internal_order_list [global.NUM_INTERNAL_ORDERS]queue.Order
-	var external_order_list [global.NUM_GLOBAL_ORDERS]queue.Order
+	var external_order_list [global.NUM_EXTERNAL_ORDERS]queue.Order
 
 	// Check if there is an order in one of the lists
 	for {
@@ -58,7 +58,7 @@ func event_idle(new_order_bool_chan chan bool, internal_order_list_chan chan [gl
 				return current_order, internal_order_list, external_order_list
 			}
 		}
-		for i := 0; i < global.NUM_GLOBAL_ORDERS; i++ {
+		for i := 0; i < global.NUM_EXTERNAL_ORDERS; i++ {
 			if external_order_list[i].Order_state != queue.Inactive {
 				current_order = external_order_list[i]
 				return current_order, internal_order_list, external_order_list
@@ -85,7 +85,7 @@ func event_idle(new_order_bool_chan chan bool, internal_order_list_chan chan [gl
 	}
 }
 
-func event_moving(current_order queue.Order, updated_order_chan chan queue.Order, internal_order_list [global.NUM_INTERNAL_ORDERS]queue.Order, internal_order_list_chan chan [global.NUM_INTERNAL_ORDERS]queue.Order, external_order_list [global.NUM_GLOBAL_ORDERS]queue.Order, external_order_list_chan chan [global.NUM_GLOBAL_ORDERS]queue.Order) {
+func event_moving(current_order queue.Order, updated_order_chan chan queue.Order, internal_order_list [global.NUM_INTERNAL_ORDERS]queue.Order, internal_order_list_chan chan [global.NUM_INTERNAL_ORDERS]queue.Order, external_order_list [global.NUM_EXTERNAL_ORDERS]queue.Order, external_order_list_chan chan [global.NUM_EXTERNAL_ORDERS]queue.Order) {
 	fmt.Println("Running event: Moving.")
 
 	// Go to state Stuck if the elevator is in state Moving for more than 12 seconds

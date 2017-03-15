@@ -1,6 +1,6 @@
 #pragma once
 
-//in port 4
+// In port 4
 #define PORT_4_SUBDEVICE        3
 #define PORT_4_CHANNEL_OFFSET   16
 #define PORT_4_DIRECTION        COMEDI_INPUT
@@ -13,7 +13,7 @@
 #define BUTTON_UP1              (0x300+17)
 #define BUTTON_UP2              (0x300+16)
 
-//in port 1
+// In port 1
 #define PORT_1_SUBDEVICE        2
 #define PORT_1_CHANNEL_OFFSET   0
 #define PORT_1_DIRECTION        COMEDI_INPUT
@@ -26,7 +26,7 @@
 #define SENSOR_FLOOR3           (0x200+6)
 #define SENSOR_FLOOR4           (0x200+7)
 
-//out port 3
+// In port 3
 #define PORT_3_SUBDEVICE        3
 #define PORT_3_CHANNEL_OFFSET   8
 #define PORT_3_DIRECTION        COMEDI_OUTPUT
@@ -39,7 +39,7 @@
 #define LIGHT_UP1               (0x300+9)
 #define LIGHT_UP2               (0x300+8)
 
-//out port 2
+// In port 2
 #define PORT_2_SUBDEVICE        3
 #define PORT_2_CHANNEL_OFFSET   0
 #define PORT_2_DIRECTION        COMEDI_OUTPUT
@@ -51,10 +51,10 @@
 #define LIGHT_FLOOR_IND2        (0x300+1)
 #define LIGHT_FLOOR_IND1        (0x300+0)
 
-//out port 0
+// Out port 0
 #define MOTOR                   (0x100+0)
 
-//non-existing ports (for alignment)
+// Non-exising ports for alignment
 #define BUTTON_DOWN1            -1
 #define BUTTON_UP4              -1
 #define LIGHT_DOWN1             -1

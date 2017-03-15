@@ -1,3 +1,4 @@
+// From TTK4145/Network-go
 package localip
 
 import (

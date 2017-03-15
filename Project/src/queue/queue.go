@@ -21,7 +21,7 @@ type Order struct {
 	Button      global.Button_t
 	Floor       global.Floor_t
 	Order_state int
-	Assigned_to global.Assigned_t
+	Assigned_to global.Assigned_t //ip
 }
 
 type Elev_info struct {
@@ -39,7 +39,7 @@ func Internal_order_list_to_channel(internal_order_list [global.NUM_INTERNAL_ORD
 	internal_order_list_chan <- internal_order_list
 }
 
-func External_order_list_to_channel(external_order_list [global.NUM_GLOBAL_ORDERS]Order, external_order_list_chan chan [global.NUM_GLOBAL_ORDERS]Order) {
+func External_order_list_to_channel(external_order_list [global.NUM_EXTERNAL_ORDERS]Order, external_order_list_chan chan [global.NUM_EXTERNAL_ORDERS]Order) {
 	external_order_list_chan <- external_order_list
 }
 
@@ -53,9 +53,9 @@ func Order_to_updated_order_chan(order Order, updated_order_chan chan Order) {
 
 //----------------------------------------------------------
 
-func Order_handler(new_order_bool_chan chan bool, new_order_chan chan Order, update_order_chan chan Order, external_order_list_chan chan [global.NUM_GLOBAL_ORDERS]Order, internal_order_list_chan chan [global.NUM_INTERNAL_ORDERS]Order) {
+func Order_handler(new_order_bool_chan chan bool, new_order_chan chan Order, update_order_chan chan Order, external_order_list_chan chan [global.NUM_EXTERNAL_ORDERS]Order, internal_order_list_chan chan [global.NUM_INTERNAL_ORDERS]Order) {
 	fmt.Print("Running: Order handler. ")
-	var external_order_list [global.NUM_GLOBAL_ORDERS]Order
+	var external_order_list [global.NUM_EXTERNAL_ORDERS]Order
 	var internal_order_list [global.NUM_INTERNAL_ORDERS]Order
 
 	// Put the empty lists on the channel so the channel is not empty
@@ -120,7 +120,7 @@ func Order_handler(new_order_bool_chan chan bool, new_order_chan chan Order, upd
 		}
 	}
 }
-func Update_state(update_order Order, internal_order_list [global.NUM_INTERNAL_ORDERS]Order, external_order_list [global.NUM_GLOBAL_ORDERS]Order) ([global.NUM_INTERNAL_ORDERS]Order, [global.NUM_GLOBAL_ORDERS]Order) {
+func Update_state(update_order Order, internal_order_list [global.NUM_INTERNAL_ORDERS]Order, external_order_list [global.NUM_EXTERNAL_ORDERS]Order) ([global.NUM_INTERNAL_ORDERS]Order, [global.NUM_EXTERNAL_ORDERS]Order) {
 	fmt.Println("Running Update_state")
 	fmt.Println("My update_order: ", update_order)
 
@@ -131,7 +131,7 @@ func Update_state(update_order Order, internal_order_list [global.NUM_INTERNAL_O
 			return internal_order_list, external_order_list
 		}
 	}
-	for i := 0; i < global.NUM_GLOBAL_ORDERS; i++ {
+	for i := 0; i < global.NUM_EXTERNAL_ORDERS; i++ {
 		if update_order.Button == external_order_list[i].Button && update_order.Floor == external_order_list[i].Floor {
 			fmt.Println("Update external order loop.")
 			external_order_list[i].Order_state = update_order.Order_state
@@ -161,11 +161,11 @@ func Add_new_internal_order(new_order Order, internal_order_list [global.NUM_INT
 	return internal_order_list
 }
 
-func Add_new_external_order(new_order Order, external_order_list [global.NUM_GLOBAL_ORDERS]Order) [global.NUM_GLOBAL_ORDERS]Order {
+func Add_new_external_order(new_order Order, external_order_list [global.NUM_EXTERNAL_ORDERS]Order) [global.NUM_EXTERNAL_ORDERS]Order {
 	new_order_floor := new_order.Floor
 	new_order_button := new_order.Button
 
-	for i := 0; i < global.NUM_GLOBAL_ORDERS; i++ {
+	for i := 0; i < global.NUM_EXTERNAL_ORDERS; i++ {
 		if external_order_list[i].Order_state == Inactive {
 			external_order_list[i] = new_order
 			fmt.Println("New external order was added!")
@@ -180,7 +180,7 @@ func Add_new_external_order(new_order Order, external_order_list [global.NUM_GLO
 	return external_order_list
 }
 
-func Delete_order(updated_order Order, internal_order_list [global.NUM_INTERNAL_ORDERS]Order, external_order_list [global.NUM_GLOBAL_ORDERS]Order) ([global.NUM_INTERNAL_ORDERS]Order, [global.NUM_GLOBAL_ORDERS]Order) {
+func Delete_order(updated_order Order, internal_order_list [global.NUM_INTERNAL_ORDERS]Order, external_order_list [global.NUM_EXTERNAL_ORDERS]Order) ([global.NUM_INTERNAL_ORDERS]Order, [global.NUM_EXTERNAL_ORDERS]Order) {
 	fmt.Println("Inside delete_order function.")
 	if updated_order.Button == global.BUTTON_UP || updated_order.Button == global.BUTTON_DOWN {
 		fmt.Println("Going to delete an external order.")
@@ -213,18 +213,18 @@ func Delete_internal_order(updated_order Order, internal_order_list [global.NUM_
 	return internal_order_list
 }
 
-func Delete_external_order(updated_order Order, external_order_list [global.NUM_GLOBAL_ORDERS]Order) [global.NUM_GLOBAL_ORDERS]Order {
+func Delete_external_order(updated_order Order, external_order_list [global.NUM_EXTERNAL_ORDERS]Order) [global.NUM_EXTERNAL_ORDERS]Order {
 	// Delete all finished orders in the external list by moving all the "later" orders one step forward,
 	// make the last element in the list an "empty" order
 	clean_order := Make_new_order(global.BUTTON_UP, global.FLOOR_1, Inactive, global.NONE)
 
-	for i := 0; i < global.NUM_GLOBAL_ORDERS; i++ {
+	for i := 0; i < global.NUM_EXTERNAL_ORDERS; i++ {
 		if external_order_list[i].Order_state == Finished {
 			fmt.Println("An external order is marked finished.")
 			for j := i; j < global.NUM_ORDERS; j++ {
-				if j < global.NUM_GLOBAL_ORDERS-1 {
+				if j < global.NUM_EXTERNAL_ORDERS-1 {
 					external_order_list[j] = external_order_list[j+1]
-				} else if j == global.NUM_GLOBAL_ORDERS-1 {
+				} else if j == global.NUM_EXTERNAL_ORDERS-1 {
 					external_order_list[j] = clean_order
 				}
 			}
@@ -234,7 +234,7 @@ func Delete_external_order(updated_order Order, external_order_list [global.NUM_
 	return external_order_list
 }
 
-func Make_my_order_list(internal_order_list [global.NUM_INTERNAL_ORDERS]Order, external_order_list [global.NUM_GLOBAL_ORDERS]Order) [global.NUM_ORDERS]Order {
+func Make_my_order_list(internal_order_list [global.NUM_INTERNAL_ORDERS]Order, external_order_list [global.NUM_EXTERNAL_ORDERS]Order) [global.NUM_ORDERS]Order {
 	// The first four elements are from the internal list,
 	// the six last elements are from the external list
 
