@@ -55,21 +55,19 @@ func State_handler(new_order_bool_chan chan bool, updated_order_bool_chan chan b
 func event_idle(new_order_bool_chan chan bool) {
 	fmt.Println(" I am in state Idle")
 
-	for {
-		//fmt.Println("Now checking for orders that needs to be done")
-		for i := 0; i < global.NUM_INTERNAL_ORDERS; i++ {
-			if queue.Internal_order_list[i].Order_state != queue.Inactive {
-				if queue.Internal_order_list[i].Order_state != queue.Finished {
-					current_order = queue.Internal_order_list[i]
-				}
+	//fmt.Println("Now checking for orders that needs to be done")
+	for i := 0; i < global.NUM_INTERNAL_ORDERS; i++ {
+		if queue.Internal_order_list[i].Order_state != queue.Inactive {
+			if queue.Internal_order_list[i].Order_state != queue.Finished {
+				current_order = queue.Internal_order_list[i]
 			}
-
 		}
-		for i := 0; i < global.NUM_GLOBAL_ORDERS; i++ {
-			if queue.External_order_list[i].Order_state != queue.Inactive {
-				if queue.External_order_list[i].Order_state != queue.Finished {
-					current_order = queue.External_order_list[i]
-				}
+
+	}
+	for i := 0; i < global.NUM_GLOBAL_ORDERS; i++ {
+		if queue.External_order_list[i].Order_state != queue.Inactive {
+			if queue.External_order_list[i].Order_state != queue.Finished {
+				current_order = queue.External_order_list[i]
 			}
 		}
 	}
@@ -86,8 +84,8 @@ func event_idle(new_order_bool_chan chan bool) {
 
 			}
 			for i := 0; i < global.NUM_GLOBAL_ORDERS; i++ {
-				if queue.Internal_order_list[i].Order_state != queue.Inactive {
-					if queue.Internal_order_list[i].Order_state != queue.Finished {
+				if queue.External_order_list[i].Order_state != queue.Inactive {
+					if queue.External_order_list[i].Order_state != queue.Finished {
 						current_order = queue.External_order_list[i]
 					}
 				}
