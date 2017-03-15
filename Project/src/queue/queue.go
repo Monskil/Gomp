@@ -116,6 +116,7 @@ func Update_state(update_order Order) {
 
 func Add_new_internal_order(new_order Order, new_order_bool_chan chan bool) {
 	new_order_floor := new_order.Floor
+	fmt.Println(Internal_order_list)
 
 	for i := 0; i < global.NUM_INTERNAL_ORDERS; i++ {
 		if Internal_order_list[i].Order_state == Inactive {
